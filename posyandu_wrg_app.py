@@ -250,7 +250,7 @@ def page_dashboard():
         col2.metric("Laki-laki", jumlah_laki)
         col3.metric("Perempuan", jumlah_perempuan)
         
-        col_lanjut, col_balita, col_baduta, col_bayi, _, _ = st.columns(4)
+        col_lanjut, col_balita, col_baduta, col_bayi = st.columns(4)
         col_lanjut.metric("Usia Lanjut (60+ thn)", jumlah_lansia)
         col_balita.metric("Balita (0-5 thn)", jumlah_balita)
         col_baduta.metric("Baduta (0-2 thn)", jumlah_baduta)
