@@ -34,7 +34,7 @@ def page_manajemen_warga():
     with st.expander("➕ Tambah Warga Baru"):
         with st.form("new_warga_form", clear_on_submit=True):
             st.write("Masukkan data diri warga baru:")
-            nik = st.text_input("id_warga")
+            nik = st.text_input("NIK")
             nama_lengkap = st.text_input("Nama Lengkap")
             tanggal_lahir = st.date_input("Tanggal Lahir", min_value=date(1920, 1, 1), max_value=date.today())
             jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
