@@ -105,6 +105,10 @@ def page_manajemen_warga():
                 df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data)
                 st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']])
 
+                # --- FITUR BARU: GRAFIK TREN INDIVIDU ---
+                plot_individual_trends(df_pemeriksaan)
+
+                st.divider()
                 st.write("Pilih pemeriksaan untuk dikelola:")
                 df_pemeriksaan['display_entry'] = "Data tgl " + pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.strftime('%Y-%m-%d')
                 pemeriksaan_to_edit = st.selectbox("Pilih data pemeriksaan:", df_pemeriksaan['display_entry'])
@@ -141,7 +145,6 @@ def page_manajemen_warga():
                             except Exception as e:
                                 st.error(f"Gagal memperbarui data pemeriksaan: {e}")
                 
-                # --- FITUR BARU: HAPUS PEMERIKSAAN ---
                 with st.expander("❌ Hapus Hasil Pemeriksaan Terpilih"):
                     st.warning(f"PERHATIAN: Anda akan menghapus data pemeriksaan tanggal **{selected_pemeriksaan['tanggal_pemeriksaan']}**. Tindakan ini tidak dapat diurungkan.")
                     if st.checkbox(f"Saya yakin ingin menghapus data pemeriksaan ini.", key=f"delete_check_{selected_pemeriksaan['id']}"):
@@ -221,35 +224,71 @@ def page_dashboard():
     if not supabase: return
 
     try:
-        # Ambil semua data yang diperlukan
-        warga_response = supabase.table("warga").select("id", count='exact').execute()
-        pemeriksaan_response = supabase.table("pemeriksaan").select("tanggal_pemeriksaan").execute()
+        # --- PERUBAHAN 1: Ambil data lebih detail untuk demografi ---
+        warga_response = supabase.table("warga").select("id, tanggal_lahir, jenis_kelamin").execute()
+        pemeriksaan_response = supabase.table("pemeriksaan").select("tanggal_pemeriksaan, warga_id").execute()
 
-        total_warga = warga_response.count
+        if not warga_response.data:
+            st.info("Belum ada data warga untuk ditampilkan di laporan.")
+            return
+
+        df_warga = pd.DataFrame(warga_response.data)
         df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data)
+        
+        # --- PERUBAHAN 2: Hitung demografi ---
+        df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
+        df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
+        
+        total_warga = len(df_warga)
+        jumlah_laki = df_warga[df_warga['jenis_kelamin'] == 'Laki-laki'].shape[0]
+        jumlah_perempuan = total_warga - jumlah_laki
+        jumlah_lansia = df_warga[df_warga['usia'] >= 60].shape[0]
+        jumlah_balita = df_warga[df_warga['usia'] <= 5].shape[0]
+
+        # Tampilkan metrik demografi
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Total Warga", total_warga)
+        col2.metric("Laki-laki", jumlah_laki)
+        col3.metric("Perempuan", jumlah_perempuan)
+        
+        col_lanjut, col_balita, _, _ = st.columns(4)
+        col_lanjut.metric("Usia Lanjut (60+ thn)", jumlah_lansia)
+        col_balita.metric("Balita (0-5 thn)", jumlah_balita)
+
+        st.divider()
 
         if df_pemeriksaan.empty:
             st.info("Belum ada data pemeriksaan untuk ditampilkan di laporan.")
             return
 
-        st.metric("Total Warga Terdaftar", total_warga)
-        
-        st.divider()
-
-        # --- Grafik Tren Kehadiran ---
+        # --- PERUBAHAN 3: Filter untuk grafik tren ---
         st.subheader("Tren Kehadiran Warga ke Posyandu")
-        df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan'])
-        kehadiran_per_hari = df_pemeriksaan.groupby('tanggal_pemeriksaan').size().reset_index(name='jumlah_hadir')
+        
+        filter_options = ['Semua Warga', 'Laki-laki', 'Perempuan', 'Lansia', 'Balita']
+        selected_filter = st.selectbox("Tampilkan tren untuk:", filter_options)
+
+        # Gabungkan data pemeriksaan dengan data warga untuk filtering
+        df_pemeriksaan_warga = pd.merge(df_pemeriksaan, df_warga, left_on='warga_id', right_on='id')
+        
+        df_filtered = df_pemeriksaan_warga
+        if selected_filter == 'Laki-laki':
+            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['jenis_kelamin'] == 'Laki-laki']
+        elif selected_filter == 'Perempuan':
+            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['jenis_kelamin'] == 'Perempuan']
+        elif selected_filter == 'Lansia':
+            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['usia'] >= 60]
+        elif selected_filter == 'Balita':
+            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['usia'] <= 5]
+            
+        df_filtered['tanggal_pemeriksaan'] = pd.to_datetime(df_filtered['tanggal_pemeriksaan'])
+        kehadiran_per_hari = df_filtered.groupby('tanggal_pemeriksaan').size().reset_index(name='jumlah_hadir')
         
         fig1, ax1 = plt.subplots(figsize=(10, 5))
         ax1.plot(kehadiran_per_hari['tanggal_pemeriksaan'], kehadiran_per_hari['jumlah_hadir'], marker='o', linestyle='-')
-        ax1.set_title("Jumlah Kehadiran per Tanggal Posyandu")
-        ax1.set_xlabel("Tanggal")
-        ax1.set_ylabel("Jumlah Warga Hadir")
-        ax1.grid(True, linestyle='--', alpha=0.6)
-        plt.xticks(rotation=45)
-        fig1.tight_layout()
-        st.pyplot(fig1)
+        ax1.set_title(f"Jumlah Kehadiran per Tanggal Posyandu ({selected_filter})")
+        ax1.set_xlabel("Tanggal"); ax1.set_ylabel("Jumlah Warga Hadir")
+        ax1.grid(True, linestyle='--', alpha=0.6); plt.xticks(rotation=45)
+        fig1.tight_layout(); st.pyplot(fig1)
 
         st.divider()
 
@@ -260,20 +299,53 @@ def page_dashboard():
         tidak_hadir = total_warga - hadir_terakhir
 
         if hadir_terakhir > 0:
-            labels = 'Hadir', 'Tidak Hadir'
-            sizes = [hadir_terakhir, tidak_hadir]
-            colors = ['#4CAF50', '#FFC107']
-            
+            labels, sizes, colors = 'Hadir', 'Tidak Hadir', [hadir_terakhir, tidak_hadir], ['#4CAF50', '#FFC107']
             fig2, ax2 = plt.subplots()
             ax2.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors, wedgeprops={'edgecolor': 'white'})
-            ax2.axis('equal')
-            ax2.set_title(f"Proporsi Kehadiran pada {tanggal_terakhir.strftime('%d %B %Y')}")
+            ax2.axis('equal'); ax2.set_title(f"Proporsi Kehadiran pada {pd.to_datetime(tanggal_terakhir).strftime('%d %B %Y')}")
             st.pyplot(fig2)
         else:
             st.info("Tidak ada data kehadiran pada tanggal terakhir.")
 
     except Exception as e:
         st.error(f"Gagal membuat laporan: {e}")
+
+# ==============================================================================
+# FUNGSI BARU: PLOT TREN INDIVIDU
+# ==============================================================================
+def plot_individual_trends(df_pemeriksaan):
+    st.subheader("📈 Grafik Tren Kesehatan Individu")
+    df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan'])
+    df_pemeriksaan = df_pemeriksaan.sort_values(by='tanggal_pemeriksaan')
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        # Grafik Tensi
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['tensi_sistolik'], marker='o', label='Sistolik')
+        ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['tensi_diastolik'], marker='o', label='Diastolik')
+        ax.set_title("Tren Tensi Darah"); ax.set_ylabel("mmHg"); ax.legend(); ax.grid(True, linestyle=':')
+        plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
+
+        # Grafik Gula Darah
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['gula_darah'], marker='o', color='g')
+        ax.set_title("Tren Gula Darah"); ax.set_ylabel("mg/dL"); ax.grid(True, linestyle=':')
+        plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
+
+    with col2:
+        # Grafik Berat Badan
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['berat_badan_kg'], marker='o', color='r')
+        ax.set_title("Tren Berat Badan"); ax.set_ylabel("kg"); ax.grid(True, linestyle=':')
+        plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
+        
+        # Grafik Kolesterol
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['kolesterol'], marker='o', color='purple')
+        ax.set_title("Tren Kolesterol"); ax.set_ylabel("mg/dL"); ax.grid(True, linestyle=':')
+        plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
 
 # ==============================================================================
 # BAGIAN UTAMA APLIKASI (MAIN)
