@@ -43,14 +43,14 @@ def page_manajemen_warga():
             
             if st.form_submit_button("Simpan Warga Baru"):
                 if not all([nik, nama_lengkap]):
-                    st.warning("nik dan Nama Lengkap wajib diisi.")
+                    st.warning("NIK dan Nama Lengkap wajib diisi.")
                 else:
                     try:
                         supabase.table("warga").insert({
                             "nik": nik, "nama_lengkap": nama_lengkap, "tanggal_lahir": str(tanggal_lahir),
                             "jenis_kelamin": jenis_kelamin, "alamat": alamat, "telepon": telepon
                         }).execute()
-                        st.success(f"Warga baru '{nama_lengkap}' berhasil ditambahkan.")
+                        st.success(f"Warga baru '{nama_lengkap}' berhasil ditambahkan."); st.rerun()
                     except Exception as e:
                         st.error(f"Gagal menambahkan warga: {e}")
 
@@ -67,9 +67,8 @@ def page_manajemen_warga():
         df_warga = pd.DataFrame(response.data)
         st.dataframe(df_warga)
 
-        # --- Fitur Edit dan Hapus ---
         warga_to_manage = st.selectbox(
-            "Pilih warga untuk diedit atau dihapus:",
+            "Pilih warga untuk dikelola:",
             options=df_warga['nama_lengkap'] + " (" + df_warga['nik'] + ")",
             index=None,
             placeholder="Pilih warga..."
@@ -79,7 +78,7 @@ def page_manajemen_warga():
             selected_nik = warga_to_manage.split('(')[-1].replace(')', '')
             selected_warga_data = df_warga[df_warga['nik'] == selected_nik].iloc[0]
 
-            with st.expander("✏️ Edit Data Warga Terpilih"):
+            with st.expander("✏️ Edit Data Diri Warga"):
                 with st.form("edit_warga_form"):
                     edit_nama = st.text_input("Nama Lengkap", value=selected_warga_data['nama_lengkap'])
                     edit_tgl_lahir_val = datetime.strptime(selected_warga_data['tanggal_lahir'], '%Y-%m-%d').date()
@@ -87,7 +86,7 @@ def page_manajemen_warga():
                     edit_alamat = st.text_area("Alamat", value=selected_warga_data['alamat'])
                     edit_telepon = st.text_input("Nomor Telepon", value=selected_warga_data['telepon'])
 
-                    if st.form_submit_button("Simpan Perubahan"):
+                    if st.form_submit_button("Simpan Perubahan Data Diri"):
                         try:
                             update_data = {"nama_lengkap": edit_nama, "tanggal_lahir": str(edit_tgl_lahir), "alamat": edit_alamat, "telepon": edit_telepon}
                             supabase.table("warga").update(update_data).eq("id", selected_warga_data['id']).execute()
@@ -95,15 +94,55 @@ def page_manajemen_warga():
                         except Exception as e:
                             st.error(f"Gagal memperbarui data: {e}")
             
-            with st.expander("❌ Hapus Data Warga Terpilih"):
-                st.warning(f"PERHATIAN: Menghapus data warga '{selected_warga_data['nama_lengkap']}' juga akan menghapus **semua riwayat pemeriksaannya**.")
-                if st.checkbox("Saya mengerti dan yakin ingin menghapus data warga ini."):
-                    if st.button("Hapus Permanen"):
-                        try:
-                            supabase.table("warga").delete().eq("id", selected_warga_data['id']).execute()
-                            st.success("Data warga dan semua riwayatnya berhasil dihapus."); st.rerun()
-                        except Exception as e:
-                            st.error(f"Gagal menghapus data: {e}")
+            # --- PERUBAHAN UTAMA DIMULAI DI SINI ---
+            st.divider()
+            st.subheader(f"Riwayat Pemeriksaan untuk {selected_warga_data['nama_lengkap']}")
+            
+            # Ambil riwayat pemeriksaan untuk warga yang dipilih
+            pemeriksaan_response = supabase.table("pemeriksaan").select("*").eq("warga_id", selected_warga_data['id']).order("tanggal_pemeriksaan", desc=True).execute()
+            
+            if not pemeriksaan_response.data:
+                st.info("Warga ini belum memiliki riwayat pemeriksaan.")
+            else:
+                df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data)
+                st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']])
+
+                # --- Fitur Edit Pemeriksaan ---
+                st.write("Pilih pemeriksaan untuk direvisi:")
+                df_pemeriksaan['display_entry'] = "Data tgl " + pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.strftime('%Y-%m-%d')
+                pemeriksaan_to_edit = st.selectbox("Pilih data pemeriksaan:", df_pemeriksaan['display_entry'])
+                
+                selected_pemeriksaan = df_pemeriksaan[df_pemeriksaan['display_entry'] == pemeriksaan_to_edit].iloc[0]
+
+                with st.expander("Revisi Hasil Pemeriksaan Terpilih"):
+                    with st.form("edit_pemeriksaan_form"):
+                        st.write(f"Mengubah data untuk pemeriksaan tanggal **{selected_pemeriksaan['tanggal_pemeriksaan']}**")
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            edit_tensi_sistolik = st.number_input("Tensi Sistolik (mmHg)", value=selected_pemeriksaan['tensi_sistolik'])
+                            edit_berat_badan = st.number_input("Berat Badan (kg)", value=selected_pemeriksaan['berat_badan_kg'])
+                            edit_lingkar_perut = st.number_input("Lingkar Perut (cm)", value=selected_pemeriksaan['lingkar_perut_cm'])
+                            edit_gula_darah = st.number_input("Gula Darah (mg/dL)", value=selected_pemeriksaan['gula_darah'])
+                        with col2:
+                            edit_tensi_diastolik = st.number_input("Tensi Diastolik (mmHg)", value=selected_pemeriksaan['tensi_diastolik'])
+                            edit_lingkar_lengan = st.number_input("Lingkar Lengan (cm)", value=selected_pemeriksaan['lingkar_lengan_cm'])
+                            edit_kolesterol = st.number_input("Kolesterol (mg/dL)", value=selected_pemeriksaan['kolesterol'])
+                        
+                        edit_catatan = st.text_area("Catatan", value=selected_pemeriksaan['catatan'])
+
+                        if st.form_submit_button("Simpan Perubahan Pemeriksaan"):
+                            try:
+                                update_data = {
+                                    "tensi_sistolik": edit_tensi_sistolik, "tensi_diastolik": edit_tensi_diastolik,
+                                    "berat_badan_kg": edit_berat_badan, "lingkar_perut_cm": edit_lingkar_perut,
+                                    "lingkar_lengan_cm": edit_lingkar_lengan, "gula_darah": edit_gula_darah,
+                                    "kolesterol": edit_kolesterol, "catatan": edit_catatan
+                                }
+                                supabase.table("pemeriksaan").update(update_data).eq("id", selected_pemeriksaan['id']).execute()
+                                st.success("Data pemeriksaan berhasil diperbarui."); st.rerun()
+                            except Exception as e:
+                                st.error(f"Gagal memperbarui data pemeriksaan: {e}")
 
     except Exception as e:
         st.error(f"Gagal mengambil data warga: {e}")
@@ -219,7 +258,7 @@ def page_dashboard():
             
             fig2, ax2 = plt.subplots()
             ax2.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors, wedgeprops={'edgecolor': 'white'})
-            ax2.axis('equal')  # Pastikan pie chart berbentuk lingkaran.
+            ax2.axis('equal')
             ax2.set_title(f"Proporsi Kehadiran pada {tanggal_terakhir.strftime('%d %B %Y')}")
             st.pyplot(fig2)
         else:
