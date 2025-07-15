@@ -224,7 +224,6 @@ def page_dashboard():
     if not supabase: return
 
     try:
-        # --- PERUBAHAN 1: Ambil data lebih detail untuk demografi ---
         warga_response = supabase.table("warga").select("id, tanggal_lahir, jenis_kelamin").execute()
         pemeriksaan_response = supabase.table("pemeriksaan").select("tanggal_pemeriksaan, warga_id").execute()
 
@@ -235,7 +234,6 @@ def page_dashboard():
         df_warga = pd.DataFrame(warga_response.data)
         df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data)
         
-        # --- PERUBAHAN 2: Hitung demografi ---
         df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
         df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
         
@@ -245,7 +243,6 @@ def page_dashboard():
         jumlah_lansia = df_warga[df_warga['usia'] >= 60].shape[0]
         jumlah_balita = df_warga[df_warga['usia'] <= 5].shape[0]
 
-        # Tampilkan metrik demografi
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Total Warga", total_warga)
         col2.metric("Laki-laki", jumlah_laki)
@@ -261,13 +258,11 @@ def page_dashboard():
             st.info("Belum ada data pemeriksaan untuk ditampilkan di laporan.")
             return
 
-        # --- PERUBAHAN 3: Filter untuk grafik tren ---
         st.subheader("Tren Kehadiran Warga ke Posyandu")
         
         filter_options = ['Semua Warga', 'Laki-laki', 'Perempuan', 'Lansia', 'Balita']
         selected_filter = st.selectbox("Tampilkan tren untuk:", filter_options)
 
-        # Gabungkan data pemeriksaan dengan data warga untuk filtering
         df_pemeriksaan_warga = pd.merge(df_pemeriksaan, df_warga, left_on='warga_id', right_on='id')
         
         df_filtered = df_pemeriksaan_warga
@@ -292,14 +287,17 @@ def page_dashboard():
 
         st.divider()
 
-        # --- Grafik Proporsi Kehadiran ---
         st.subheader("Proporsi Kehadiran pada Posyandu Terakhir")
         tanggal_terakhir = df_pemeriksaan['tanggal_pemeriksaan'].max()
         hadir_terakhir = df_pemeriksaan[df_pemeriksaan['tanggal_pemeriksaan'] == tanggal_terakhir].shape[0]
         tidak_hadir = total_warga - hadir_terakhir
 
         if hadir_terakhir > 0:
-            labels, sizes, colors = 'Hadir', 'Tidak Hadir', [hadir_terakhir, tidak_hadir], ['#4CAF50', '#FFC107']
+            # --- PERBAIKAN KODE DI SINI ---
+            labels = 'Hadir', 'Tidak Hadir'
+            sizes = [hadir_terakhir, tidak_hadir]
+            colors = ['#4CAF50', '#FFC107']
+            
             fig2, ax2 = plt.subplots()
             ax2.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors, wedgeprops={'edgecolor': 'white'})
             ax2.axis('equal'); ax2.set_title(f"Proporsi Kehadiran pada {pd.to_datetime(tanggal_terakhir).strftime('%d %B %Y')}")
