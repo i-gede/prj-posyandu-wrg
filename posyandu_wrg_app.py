@@ -267,9 +267,9 @@ def page_dashboard():
         
         df_filtered = df_pemeriksaan_warga
         if selected_filter == 'Laki-laki':
-            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['jenis_kelamin'] == 'Laki-laki']
+            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['jenis_kelamin'] == 'L']
         elif selected_filter == 'Perempuan':
-            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['jenis_kelamin'] == 'Perempuan']
+            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['jenis_kelamin'] == 'P']
         elif selected_filter == 'Lansia':
             df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['usia'] >= 60]
         elif selected_filter == 'Balita':
