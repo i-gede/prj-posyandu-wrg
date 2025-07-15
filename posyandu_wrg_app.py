@@ -94,11 +94,9 @@ def page_manajemen_warga():
                         except Exception as e:
                             st.error(f"Gagal memperbarui data: {e}")
             
-            # --- PERUBAHAN UTAMA DIMULAI DI SINI ---
             st.divider()
             st.subheader(f"Riwayat Pemeriksaan untuk {selected_warga_data['nama_lengkap']}")
             
-            # Ambil riwayat pemeriksaan untuk warga yang dipilih
             pemeriksaan_response = supabase.table("pemeriksaan").select("*").eq("warga_id", selected_warga_data['id']).order("tanggal_pemeriksaan", desc=True).execute()
             
             if not pemeriksaan_response.data:
@@ -107,8 +105,7 @@ def page_manajemen_warga():
                 df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data)
                 st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']])
 
-                # --- Fitur Edit Pemeriksaan ---
-                st.write("Pilih pemeriksaan untuk direvisi:")
+                st.write("Pilih pemeriksaan untuk dikelola:")
                 df_pemeriksaan['display_entry'] = "Data tgl " + pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.strftime('%Y-%m-%d')
                 pemeriksaan_to_edit = st.selectbox("Pilih data pemeriksaan:", df_pemeriksaan['display_entry'])
                 
@@ -120,14 +117,14 @@ def page_manajemen_warga():
                         
                         col1, col2 = st.columns(2)
                         with col1:
-                            edit_tensi_sistolik = st.number_input("Tensi Sistolik (mmHg)", value=selected_pemeriksaan['tensi_sistolik'])
-                            edit_berat_badan = st.number_input("Berat Badan (kg)", value=selected_pemeriksaan['berat_badan_kg'])
-                            edit_lingkar_perut = st.number_input("Lingkar Perut (cm)", value=selected_pemeriksaan['lingkar_perut_cm'])
-                            edit_gula_darah = st.number_input("Gula Darah (mg/dL)", value=selected_pemeriksaan['gula_darah'])
+                            edit_tensi_sistolik = st.number_input("Tensi Sistolik (mmHg)", value=int(selected_pemeriksaan['tensi_sistolik']))
+                            edit_berat_badan = st.number_input("Berat Badan (kg)", value=float(selected_pemeriksaan['berat_badan_kg']))
+                            edit_lingkar_perut = st.number_input("Lingkar Perut (cm)", value=float(selected_pemeriksaan['lingkar_perut_cm']))
+                            edit_gula_darah = st.number_input("Gula Darah (mg/dL)", value=int(selected_pemeriksaan['gula_darah']))
                         with col2:
-                            edit_tensi_diastolik = st.number_input("Tensi Diastolik (mmHg)", value=selected_pemeriksaan['tensi_diastolik'])
-                            edit_lingkar_lengan = st.number_input("Lingkar Lengan (cm)", value=selected_pemeriksaan['lingkar_lengan_cm'])
-                            edit_kolesterol = st.number_input("Kolesterol (mg/dL)", value=selected_pemeriksaan['kolesterol'])
+                            edit_tensi_diastolik = st.number_input("Tensi Diastolik (mmHg)", value=int(selected_pemeriksaan['tensi_diastolik']))
+                            edit_lingkar_lengan = st.number_input("Lingkar Lengan (cm)", value=float(selected_pemeriksaan['lingkar_lengan_cm']))
+                            edit_kolesterol = st.number_input("Kolesterol (mg/dL)", value=int(selected_pemeriksaan['kolesterol']))
                         
                         edit_catatan = st.text_area("Catatan", value=selected_pemeriksaan['catatan'])
 
@@ -143,6 +140,17 @@ def page_manajemen_warga():
                                 st.success("Data pemeriksaan berhasil diperbarui."); st.rerun()
                             except Exception as e:
                                 st.error(f"Gagal memperbarui data pemeriksaan: {e}")
+                
+                # --- FITUR BARU: HAPUS PEMERIKSAAN ---
+                with st.expander("❌ Hapus Hasil Pemeriksaan Terpilih"):
+                    st.warning(f"PERHATIAN: Anda akan menghapus data pemeriksaan tanggal **{selected_pemeriksaan['tanggal_pemeriksaan']}**. Tindakan ini tidak dapat diurungkan.")
+                    if st.checkbox(f"Saya yakin ingin menghapus data pemeriksaan ini.", key=f"delete_check_{selected_pemeriksaan['id']}"):
+                        if st.button("Hapus Pemeriksaan Ini Secara Permanen"):
+                            try:
+                                supabase.table("pemeriksaan").delete().eq("id", selected_pemeriksaan['id']).execute()
+                                st.success("Data pemeriksaan berhasil dihapus."); st.rerun()
+                            except Exception as e:
+                                st.error(f"Gagal menghapus data pemeriksaan: {e}")
 
     except Exception as e:
         st.error(f"Gagal mengambil data warga: {e}")
@@ -190,10 +198,10 @@ def page_input_pemeriksaan():
                 
                 data_to_insert = {
                     "tanggal_pemeriksaan": str(tanggal_pemeriksaan), "warga_id": warga_id,
-                    "tensi_sistolik": tensi_sistolik, "tensi_diastolik": tensi_diastolik,
+                    "tensi_sistolik": int(tensi_sistolik), "tensi_diastolik": int(tensi_diastolik),
                     "berat_badan_kg": berat_badan_kg, "lingkar_perut_cm": lingkar_perut_cm,
-                    "lingkar_lengan_cm": lingkar_lengan_cm, "gula_darah": gula_darah,
-                    "kolesterol": kolesterol, "catatan": catatan
+                    "lingkar_lengan_cm": lingkar_lengan_cm, "gula_darah": int(gula_darah),
+                    "kolesterol": int(kolesterol), "catatan": catatan
                 }
                 try:
                     supabase.table("pemeriksaan").insert(data_to_insert).execute()
