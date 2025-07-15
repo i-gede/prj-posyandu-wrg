@@ -238,19 +238,23 @@ def page_dashboard():
         df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
         
         total_warga = len(df_warga)
-        jumlah_laki = df_warga[df_warga['jenis_kelamin'] == 'Laki-laki'].shape[0]
+        jumlah_laki = df_warga[df_warga['jenis_kelamin'] == 'L'].shape[0]
         jumlah_perempuan = total_warga - jumlah_laki
         jumlah_lansia = df_warga[df_warga['usia'] >= 60].shape[0]
         jumlah_balita = df_warga[df_warga['usia'] <= 5].shape[0]
+        jumlah_baduta = df_warga[df_warga['usia'] <= 2].shape[0]
+        jumlah_bayi = df_warga[df_warga['usia'] <= 0.5].shape[0]
 
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Total Warga", total_warga)
         col2.metric("Laki-laki", jumlah_laki)
         col3.metric("Perempuan", jumlah_perempuan)
         
-        col_lanjut, col_balita, _, _ = st.columns(4)
+        col_lanjut, col_balita, col_baduta, col_bayi, _, _ = st.columns(4)
         col_lanjut.metric("Usia Lanjut (60+ thn)", jumlah_lansia)
         col_balita.metric("Balita (0-5 thn)", jumlah_balita)
+        col_baduta.metric("Baduta (0-2 thn)", jumlah_baduta)
+        col_bayi.metric("Bayi (0-6 bln)", jumlah_bayi)
 
         st.divider()
 
@@ -267,9 +271,9 @@ def page_dashboard():
         
         df_filtered = df_pemeriksaan_warga
         if selected_filter == 'Laki-laki':
-            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['jenis_kelamin'] == 'L']
+            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['jenis_kelamin'] == 'Laki-laki']
         elif selected_filter == 'Perempuan':
-            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['jenis_kelamin'] == 'P']
+            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['jenis_kelamin'] == 'Perempuan']
         elif selected_filter == 'Lansia':
             df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['usia'] >= 60]
         elif selected_filter == 'Balita':
