@@ -69,7 +69,7 @@ def page_manajemen_warga():
 
         warga_to_manage = st.selectbox(
             "Pilih warga untuk dikelola:",
-            options=df_warga['nama_lengkap'] + " (" + df_warga['nik'] + ")",
+            options=df_warga['nama_lengkap'] + " (" + df_warga['rt'] + ")",
             index=None,
             placeholder="Pilih warga..."
         )
