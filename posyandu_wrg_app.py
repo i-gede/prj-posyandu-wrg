@@ -36,18 +36,25 @@ def page_manajemen_warga():
             st.write("Masukkan data diri warga baru:")
             nik = st.text_input("NIK")
             nama_lengkap = st.text_input("Nama Lengkap")
+            
+            # Menambahkan input RT dan Blok
+            col1, col2 = st.columns(2)
+            with col1:
+                rt = st.text_input("RT")
+            with col2:
+                blok = st.text_input("Blok")
+
             tanggal_lahir = st.date_input("Tanggal Lahir", min_value=date(1920, 1, 1), max_value=date.today())
             jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
             alamat = st.text_area("Alamat")
             telepon = st.text_input("Nomor Telepon (Opsional)")
-            rt = st.text_input("rt")
-            blok = st.text_input("blok")
             
             if st.form_submit_button("Simpan Warga Baru"):
-                if not all([nik, nama_lengkap]):
-                    st.warning("NIK dan Nama Lengkap wajib diisi.")
+                if not all([nik, nama_lengkap, rt, blok]):
+                    st.warning("NIK, Nama Lengkap, RT, dan Blok wajib diisi.")
                 else:
                     try:
+                        # Menyimpan data RT dan Blok
                         supabase.table("warga").insert({
                             "nik": nik, "nama_lengkap": nama_lengkap, "tanggal_lahir": str(tanggal_lahir),
                             "jenis_kelamin": jenis_kelamin, "alamat": alamat, "telepon": telepon,
@@ -70,20 +77,31 @@ def page_manajemen_warga():
         df_warga = pd.DataFrame(response.data)
         st.dataframe(df_warga)
 
+        # Membuat display_name menggunakan kolom 'rt' dan 'blok'
+        df_warga['display_name'] = df_warga['nama_lengkap'] + " (RT-" + df_warga['rt'].astype(str) + ", BLOK-" + df_warga['blok'].astype(str) + ")"
+        
         warga_to_manage = st.selectbox(
             "Pilih warga untuk dikelola:",
-            options=df_warga['nama_lengkap'] + " (RT-" + df_warga['rt'] + ", BLOK-" + df_warga['blok'] + ")",
+            options=df_warga['display_name'],
             index=None,
             placeholder="Pilih warga..."
         )
 
         if warga_to_manage:
-            selected_nik = warga_to_manage.split('(')[-1].replace(')', '')
-            selected_warga_data = df_warga[df_warga['nik'] == selected_nik].iloc[0]
+            # --- PERBAIKAN LOGIKA PENCARIAN DI SINI ---
+            # Mencari baris data berdasarkan 'display_name' yang cocok, bukan dengan memecah string.
+            selected_warga_data = df_warga[df_warga['display_name'] == warga_to_manage].iloc[0]
 
             with st.expander("✏️ Edit Data Diri Warga"):
                 with st.form("edit_warga_form"):
                     edit_nama = st.text_input("Nama Lengkap", value=selected_warga_data['nama_lengkap'])
+                    
+                    col_edit1, col_edit2 = st.columns(2)
+                    with col_edit1:
+                        edit_rt = st.text_input("RT", value=selected_warga_data.get('rt', ''))
+                    with col_edit2:
+                        edit_blok = st.text_input("Blok", value=selected_warga_data.get('blok', ''))
+
                     edit_tgl_lahir_val = datetime.strptime(selected_warga_data['tanggal_lahir'], '%Y-%m-%d').date()
                     edit_tgl_lahir = st.date_input("Tanggal Lahir", value=edit_tgl_lahir_val)
                     edit_alamat = st.text_area("Alamat", value=selected_warga_data['alamat'])
@@ -91,7 +109,11 @@ def page_manajemen_warga():
 
                     if st.form_submit_button("Simpan Perubahan Data Diri"):
                         try:
-                            update_data = {"nama_lengkap": edit_nama, "tanggal_lahir": str(edit_tgl_lahir), "alamat": edit_alamat, "telepon": edit_telepon}
+                            update_data = {
+                                "nama_lengkap": edit_nama, "tanggal_lahir": str(edit_tgl_lahir), 
+                                "alamat": edit_alamat, "telepon": edit_telepon,
+                                "rt": edit_rt, "blok": edit_blok
+                            }
                             supabase.table("warga").update(update_data).eq("id", selected_warga_data['id']).execute()
                             st.success("Data warga berhasil diperbarui."); st.rerun()
                         except Exception as e:
@@ -159,6 +181,7 @@ def page_manajemen_warga():
 
     except Exception as e:
         st.error(f"Gagal mengambil data warga: {e}")
+
 
 # ==============================================================================
 # HALAMAN 2: INPUT KEHADIRAN & PEMERIKSAAN
