@@ -257,7 +257,7 @@ def page_dashboard():
     if not supabase: return
 
     try:
-        warga_response = supabase.table("warga").select("id, tanggal_lahir, jenis_kelamin, rt, blok").execute()
+        warga_response = supabase.table("warga").select("id, nik, nama_lengkap, tanggal_lahir, jenis_kelamin, rt, blok").execute()
         pemeriksaan_response = supabase.table("pemeriksaan").select("*").execute()
         
         if not warga_response.data:
@@ -279,11 +279,19 @@ def page_dashboard():
         selected_kategori = st.sidebar.selectbox("Pilih Kategori Usia:", kategori_usia_list)
         selected_gender_display = st.sidebar.selectbox("Pilih Jenis Kelamin:", ["Semua", "Laki-laki", "Perempuan"])
 
+        # --- PERUBAHAN 1: Menggunakan session_state untuk menyimpan status ---
         if st.sidebar.button("Tampilkan Laporan"):
+            st.session_state.report_generated = True
+        
+        if 'report_generated' not in st.session_state:
+            st.session_state.report_generated = False
+
+        if st.session_state.report_generated:
             # --- PROSES FILTERING DATA ---
             df_warga_filtered = df_warga.copy()
             if selected_rt != "Semua":
                 df_warga_filtered = df_warga_filtered[df_warga_filtered['rt'] == selected_rt]
+            
             if selected_gender_display != "Semua":
                 df_warga_filtered = df_warga_filtered[df_warga_filtered['jenis_kelamin'] == selected_gender_display]
             
@@ -303,14 +311,12 @@ def page_dashboard():
                 (df_pemeriksaan['tanggal_pemeriksaan'] <= tgl_akhir)
             ]
 
-            # --- PERUBAHAN UTAMA: LAPORAN PER TANGGAL POSYANDU ---
             st.subheader(f"Laporan untuk: {selected_rt} | {selected_kategori} | {selected_gender_display}")
             st.caption(f"Periode: {tgl_mulai.strftime('%d %b %Y')} - {tgl_akhir.strftime('%d %b %Y')}")
             
             if df_pemeriksaan_filtered.empty:
                 st.warning("Tidak ada data pemeriksaan yang cocok dengan filter yang Anda pilih.")
             else:
-                # 1. Tampilkan Grafik Tren Keseluruhan (Tetap)
                 st.write("#### Tren Kehadiran (Periode Terpilih)")
                 kehadiran_per_hari = df_pemeriksaan_filtered.groupby('tanggal_pemeriksaan').size().reset_index(name='jumlah_hadir')
                 fig1, ax1 = plt.subplots(figsize=(10, 4))
@@ -321,7 +327,6 @@ def page_dashboard():
                 
                 st.divider()
 
-                # 2. Dropdown untuk memilih tanggal spesifik
                 st.subheader("Laporan Detail per Tanggal Posyandu")
                 available_dates = sorted(df_pemeriksaan_filtered['tanggal_pemeriksaan'].unique(), reverse=True)
                 selected_date = st.selectbox(
@@ -331,10 +336,8 @@ def page_dashboard():
                 )
 
                 if selected_date:
-                    # 3. Filter data untuk tanggal yang dipilih
                     df_single_day = df_pemeriksaan_filtered[df_pemeriksaan_filtered['tanggal_pemeriksaan'] == selected_date]
                     
-                    # 4. Hitung dan tampilkan metrik untuk tanggal tersebut
                     total_warga_terfilter = len(df_warga_filtered)
                     hadir_hari_itu = len(df_single_day)
                     partisipasi_hari_itu = (hadir_hari_itu / total_warga_terfilter * 100) if total_warga_terfilter > 0 else 0
@@ -344,8 +347,8 @@ def page_dashboard():
                     col2.metric("Jumlah Kehadiran Hari Ini", f"{hadir_hari_itu} orang")
                     col3.metric("Tingkat Partisipasi Hari Ini", f"{partisipasi_hari_itu:.1f}%")
                     
-                    # 5. Tampilkan tabel data rinci untuk tanggal tersebut
                     st.write("#### Data Rinci Kehadiran")
+                    # --- PERUBAHAN 2: Memperbaiki penggabungan data ---
                     df_laporan_harian = pd.merge(df_single_day, df_warga, left_on='warga_id', right_on='id', how='left')
                     st.dataframe(df_laporan_harian[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']])
 
