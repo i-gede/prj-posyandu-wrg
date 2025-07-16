@@ -45,7 +45,7 @@ def page_manajemen_warga():
                 blok = st.text_input("Blok")
 
             tanggal_lahir = st.date_input("Tanggal Lahir", min_value=date(1920, 1, 1), max_value=date.today())
-            jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
+            jenis_kelamin_display = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
             alamat = st.text_area("Alamat")
             telepon = st.text_input("Nomor Telepon (Opsional)")
             
@@ -54,10 +54,13 @@ def page_manajemen_warga():
                     st.warning("NIK, Nama Lengkap, RT, dan Blok wajib diisi.")
                 else:
                     try:
+                        # --- PERUBAHAN: Konversi 'Laki-laki'/'Perempuan' menjadi 'L'/'P' ---
+                        jenis_kelamin_db = "L" if jenis_kelamin_display == "Laki-laki" else "P"
                         # Menyimpan data RT dan Blok
                         supabase.table("warga").insert({
                             "nik": nik, "nama_lengkap": nama_lengkap, "tanggal_lahir": str(tanggal_lahir),
-                            "jenis_kelamin": jenis_kelamin, "alamat": alamat, "telepon": telepon,
+                            "jenis_kelamin": jenis_kelamin_db, # Simpan 'L' atau 'P'
+                            "alamat": alamat, "telepon": telepon,
                             "rt": rt, "blok": blok
                         }).execute()
                         st.success(f"Warga baru '{nama_lengkap}' berhasil ditambahkan."); st.rerun()
@@ -286,7 +289,7 @@ def page_dashboard():
         kategori_usia_list = ["Semua", "Bayi (0-6 bln)", "Baduta (6 bln - <2 thn)", "Balita (2 - <5 thn)", "Anak-anak (5 - <10 thn)", "Remaja (10 - <20 thn)", "Dewasa (20 - <60 thn)", "Lansia (60+ thn)"]
         selected_kategori = st.sidebar.selectbox("Pilih Kategori Usia:", kategori_usia_list)
         
-        selected_gender = st.sidebar.selectbox("Pilih Jenis Kelamin:", ["Semua", "Laki-laki", "Perempuan"])
+        selected_gender_display = st.sidebar.selectbox("Pilih Jenis Kelamin:", ["Semua", "Laki-laki", "Perempuan"])
 
         if st.sidebar.button("Tampilkan Laporan"):
             # --- PROSES FILTERING DATA ---
@@ -295,8 +298,10 @@ def page_dashboard():
             df_warga_filtered = df_warga.copy()
             if selected_rt != "Semua":
                 df_warga_filtered = df_warga_filtered[df_warga_filtered['rt'] == selected_rt]
-            if selected_gender != "Semua":
-                df_warga_filtered = df_warga_filtered[df_warga_filtered['jenis_kelamin'] == selected_gender]
+            # --- PERUBAHAN: Filter berdasarkan 'L'/'P' ---
+            if selected_gender_display != "Semua":
+                gender_code = "L" if selected_gender_display == "Laki-laki" else "P"
+                df_warga_filtered = df_warga_filtered[df_warga_filtered['jenis_kelamin'] == gender_code]
             
             if selected_kategori != "Semua":
                 if selected_kategori == "Bayi (0-6 bln)": df_warga_filtered = df_warga_filtered[df_warga_filtered['usia'] <= 0.5]
@@ -318,7 +323,7 @@ def page_dashboard():
             # --- TAMPILKAN HASIL LAPORAN ---
             
             # Judul dinamis
-            st.subheader(f"Laporan untuk: {selected_rt} | {selected_kategori} | {selected_gender}")
+            st.subheader(f"Laporan untuk: {selected_rt} | {selected_kategori} | {selected_gender_display}")
             st.caption(f"Periode: {tgl_mulai.strftime('%d %b %Y')} - {tgl_akhir.strftime('%d %b %Y')}")
 
             # Metrik Utama
