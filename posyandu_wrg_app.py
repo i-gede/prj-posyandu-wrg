@@ -40,6 +40,8 @@ def page_manajemen_warga():
             jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
             alamat = st.text_area("Alamat")
             telepon = st.text_input("Nomor Telepon (Opsional)")
+            rt = st.tex_input("rt")
+            blok = st.tex_input("blok")
             
             if st.form_submit_button("Simpan Warga Baru"):
                 if not all([nik, nama_lengkap]):
@@ -48,7 +50,8 @@ def page_manajemen_warga():
                     try:
                         supabase.table("warga").insert({
                             "nik": nik, "nama_lengkap": nama_lengkap, "tanggal_lahir": str(tanggal_lahir),
-                            "jenis_kelamin": jenis_kelamin, "alamat": alamat, "telepon": telepon
+                            "jenis_kelamin": jenis_kelamin, "alamat": alamat, "telepon": telepon,
+                            "rt": rt, "blok": blok
                         }).execute()
                         st.success(f"Warga baru '{nama_lengkap}' berhasil ditambahkan."); st.rerun()
                     except Exception as e:
