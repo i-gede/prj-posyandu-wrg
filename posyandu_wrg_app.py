@@ -49,7 +49,7 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
     elements = []
 
     # Judul Laporan
-    elements.append(Paragraph("Laporan Posyandu Warga", styles['h1']))
+    elements.append(Paragraph("Laporan Posyandu Mawar - KBU", styles['h1']))
     elements.append(Spacer(1, 0.2 * inch))
     
     filter_text = f"<b>Filter Laporan:</b><br/>- Tanggal: {filters['selected_date_str']}<br/>- Wilayah: {filters['rt']}<br/>- Kategori Usia: {filters['kategori']}<br/>- Jenis Kelamin: {filters['gender']}"
@@ -60,8 +60,8 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
     elements.append(Paragraph("Ringkasan Laporan", styles['h2']))
     
     metric_data = [
-        ['Total Warga (Sesuai Filter)', f": {metrics['total_warga']}"],
-        ['Jumlah Kehadiran', f": {metrics['hadir_hari_ini']}"],
+        ['Total Warga', f": {metrics['total_warga']}"],
+        ['Jumlah Kunjungan', f": {metrics['hadir_hari_ini']}"],
         ['Tingkat Partisipasi', f": {metrics['partisipasi_hari_ini']:.1f}%"]
     ]
     metric_table = Table(metric_data, colWidths=[2.5*inch, 2.5*inch])
@@ -74,12 +74,12 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
         img_buffer_pie = BytesIO()
         fig_pie.savefig(img_buffer_pie, format='png', dpi=300, bbox_inches='tight')
         img_buffer_pie.seek(0)
-        elements.append(Image(img_buffer_pie, width=4*inch, height=3*inch))
+        elements.append(Image(img_buffer_pie, width=4*inch, height=4*inch))
         # --- PERBAIKAN: Menghapus .close() ---
         # img_buffer_pie.close() 
     
     elements.append(PageBreak())
-    elements.append(Paragraph("Tren Kehadiran (Sesuai Filter Populasi)", styles['h2']))
+    elements.append(Paragraph("Tren Kunjungan Warga", styles['h2']))
     if fig_tren:
         img_buffer_tren = BytesIO()
         fig_tren.savefig(img_buffer_tren, format='png', dpi=300, bbox_inches='tight')
@@ -89,7 +89,7 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
         # img_buffer_tren.close()
     
     elements.append(Spacer(1, 0.3 * inch))
-    elements.append(Paragraph("Data Rinci Kehadiran", styles['h2']))
+    elements.append(Paragraph("Data Rinci Kunjungan", styles['h2']))
     elements.append(Spacer(1, 0.2 * inch))
     
     table_data = [df_rinci.columns.to_list()] + df_rinci.values.tolist()
