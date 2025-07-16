@@ -40,8 +40,8 @@ def page_manajemen_warga():
             jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
             alamat = st.text_area("Alamat")
             telepon = st.text_input("Nomor Telepon (Opsional)")
-            rt = st.tex_input("rt")
-            blok = st.tex_input("blok")
+            rt = st.text_input("rt")
+            blok = st.text_input("blok")
             
             if st.form_submit_button("Simpan Warga Baru"):
                 if not all([nik, nama_lengkap]):
