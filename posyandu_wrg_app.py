@@ -285,7 +285,8 @@ def page_dashboard():
         if selected_rt != "Semua":
             df_warga_filtered = df_warga_filtered[df_warga_filtered['rt'] == selected_rt]
         if selected_gender_display != "Semua":
-            df_warga_filtered = df_warga_filtered[df_warga_filtered['jenis_kelamin'] == selected_gender_display]
+            gender_code = "L" if selected_gender_display == "Laki-laki" else "P"
+            df_warga_filtered = df_warga_filtered[df_warga_filtered['jenis_kelamin'] == gender_code]
         if selected_kategori != "Semua":
             if selected_kategori == "Bayi (0-6 bln)": df_warga_filtered = df_warga_filtered[df_warga_filtered['usia'] <= 0.5]
             elif selected_kategori == "Baduta (6 bln - <2 thn)": df_warga_filtered = df_warga_filtered[(df_warga_filtered['usia'] > 0.5) & (df_warga_filtered['usia'] < 2)]
