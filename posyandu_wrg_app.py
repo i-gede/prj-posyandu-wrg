@@ -52,8 +52,7 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
     elements.append(Paragraph("Laporan Posyandu Warga", styles['h1']))
     elements.append(Spacer(1, 0.2 * inch))
     
-    filter_text = f"<b>Periode:</b> {filters['tgl_mulai'].strftime('%d %b %Y')} - {filters['tgl_akhir'].strftime('%d %b %Y')}<br/>"
-    filter_text += f"<b>Filter Populasi:</b> RT {filters['rt']} | {filters['kategori']} | {filters['gender']}"
+    filter_text = f"<b>Filter Populasi:</b> RT {filters['rt']} | {filters['kategori']} | {filters['gender']}"
     elements.append(Paragraph(filter_text, styles['Normal']))
     elements.append(Spacer(1, 0.3 * inch))
 
@@ -458,8 +457,8 @@ def page_dashboard():
             st.divider()
             if hadir_hari_itu > 0:
                 pdf_buffer = generate_pdf_report(
-                    filters={"selected_date_str": selected_date.strftime('%d %B %Y'), "rt": selected_wilayah, "kategori": selected_kategori, "gender": selected_gender},
-                    metrics={"total_warga": total_warga_terfilter, "hadir_hari_ini": hadir_hari_itu, "partisipasi_hari_itu": partisipasi_hari_itu},
+                    filters={"selected_date_str": selected_date.strftime('%d %B %Y'), "rt": selected_wilayah, "kategori": selected_kategori, "gender": selected_gender, "tgl_mulai": date.today(), "tgl_akhir": date.today()}, # Placeholder dates
+                    metrics={"total_warga": total_warga_terfilter, "hadir_hari_ini": hadir_hari_itu, "partisipasi_hari_ini": partisipasi_hari_itu},
                     df_rinci=df_laporan_harian[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg']],
                     fig_tren=fig_tren,
                     fig_pie=fig_pie
