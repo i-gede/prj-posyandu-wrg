@@ -268,12 +268,15 @@ def page_dashboard():
         df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
         df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
         
-        # --- FILTER 1: TANGGAL POSYANDU ---
-        st.subheader("Filter 1: Pilih Tanggal Laporan")
+        # --- PERUBAHAN UTAMA: Filter dipindahkan ke halaman utama ---
+        
+        st.subheader("Filter Laporan")
+        
+        # Filter 1: Tanggal
         df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.date
         available_dates = sorted(df_pemeriksaan['tanggal_pemeriksaan'].unique(), reverse=True)
         selected_date = st.selectbox(
-            "Pilih Tanggal Posyandu:",
+            "Filter 1: Pilih Tanggal Pelaksanaan Posyandu",
             options=available_dates,
             format_func=lambda d: d.strftime('%d %B %Y'),
             index=None,
@@ -281,12 +284,10 @@ def page_dashboard():
         )
 
         if selected_date:
-            # --- FILTER 2: TINGKAT WILAYAH ---
-            st.subheader("Filter 2: Pilih Wilayah")
+            # Filter 2: Wilayah
             wilayah_options = ["Lingkungan (Semua RT)"] + sorted(df_warga['rt'].dropna().unique().tolist())
-            selected_wilayah = st.selectbox("Tampilkan data untuk:", wilayah_options)
+            selected_wilayah = st.selectbox("Filter 2: Tampilkan data untuk wilayah", wilayah_options)
 
-            # Filter warga berdasarkan wilayah
             df_warga_wilayah = df_warga.copy()
             if selected_wilayah != "Lingkungan (Semua RT)":
                 df_warga_wilayah = df_warga[df_warga['rt'] == selected_wilayah]
@@ -302,14 +303,14 @@ def page_dashboard():
             col2.metric("Laki-laki", laki_wilayah)
             col3.metric("Perempuan", perempuan_wilayah)
 
-            # --- FILTER 3 & 4: KATEGORI USIA & JENIS KELAMIN ---
-            st.subheader("Filter 3 & 4: Persempit Populasi")
+            # Filter 3 & 4: Kategori Usia & Jenis Kelamin
+            st.write("#### Persempit Populasi (Opsional)")
             col_f1, col_f2 = st.columns(2)
             with col_f1:
                 kategori_usia_list = ["Semua", "Bayi (0-6 bln)", "Baduta (6 bln - <2 thn)", "Balita (2 - <5 thn)", "Anak-anak (5 - <10 thn)", "Remaja (10 - <20 thn)", "Dewasa (20 - <60 thn)", "Lansia (60+ thn)"]
-                selected_kategori = st.selectbox("Pilih Kategori Usia:", kategori_usia_list)
+                selected_kategori = st.selectbox("Filter 3: Kategori Usia", kategori_usia_list)
             with col_f2:
-                selected_gender = st.selectbox("Pilih Jenis Kelamin:", ["Semua", "Laki-laki", "Perempuan"])
+                selected_gender = st.selectbox("Filter 4: Jenis Kelamin", ["Semua", "Laki-laki", "Perempuan"])
 
             # Terapkan filter demografi
             df_warga_final_filter = df_warga_wilayah.copy()
@@ -325,17 +326,14 @@ def page_dashboard():
                 elif selected_kategori == "Dewasa (20 - <60 thn)": df_warga_final_filter = df_warga_final_filter[(df_warga_final_filter['usia'] >= 20) & (df_warga_final_filter['usia'] < 60)]
                 elif selected_kategori == "Lansia (60+ thn)": df_warga_final_filter = df_warga_final_filter[df_warga_final_filter['usia'] >= 60]
 
-            # --- TAMPILKAN HASIL LAPORAN ---
             st.divider()
             st.subheader(f"Laporan untuk {selected_date.strftime('%d %B %Y')}")
             
-            # Filter data pemeriksaan untuk tanggal dan populasi yang dipilih
             df_pemeriksaan_harian = df_pemeriksaan[
                 (df_pemeriksaan['tanggal_pemeriksaan'] == selected_date) &
                 (df_pemeriksaan['warga_id'].isin(df_warga_final_filter['id']))
             ]
 
-            # Metrik Kehadiran & Partisipasi
             total_warga_terfilter = len(df_warga_final_filter)
             hadir_hari_itu = len(df_pemeriksaan_harian)
             partisipasi_hari_itu = (hadir_hari_itu / total_warga_terfilter * 100) if total_warga_terfilter > 0 else 0
@@ -345,23 +343,22 @@ def page_dashboard():
             col_m2.metric("Tingkat Partisipasi", f"{partisipasi_hari_itu:.1f}%")
 
             if hadir_hari_itu > 0:
-                # Pie Chart
-                tidak_hadir_hari_itu = total_warga_terfilter - hadir_hari_itu
-                labels, sizes, colors = 'Hadir', 'Tidak Hadir', [hadir_hari_itu, tidak_hadir_hari_itu], ['#4CAF50', '#FFC107']
-                fig_pie, ax_pie = plt.subplots(figsize=(5, 3))
-                ax_pie.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors, wedgeprops={'edgecolor': 'white'})
-                ax_pie.axis('equal'); st.pyplot(fig_pie)
+                col_pie, col_empty = st.columns([1, 1])
+                with col_pie:
+                    tidak_hadir_hari_itu = total_warga_terfilter - hadir_hari_itu
+                    labels, sizes, colors = 'Hadir', 'Tidak Hadir', [hadir_hari_itu, tidak_hadir_hari_itu], ['#4CAF50', '#FFC107']
+                    fig_pie, ax_pie = plt.subplots(figsize=(4, 4))
+                    ax_pie.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors, wedgeprops={'edgecolor': 'white'})
+                    ax_pie.axis('equal'); st.pyplot(fig_pie)
 
-                # Tabel Data Rinci
                 st.write("#### Data Rinci Kehadiran")
                 df_laporan_harian = pd.merge(df_pemeriksaan_harian, df_warga, left_on='warga_id', right_on='id', how='left')
                 st.dataframe(df_laporan_harian[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']])
             else:
-                st.info("Tidak ada data kehadiran yang cocok dengan semua filter yang dipilih pada tanggal ini.")
+                st.info("Tidak ada data kehadiran yang cocok dengan filter yang dipilih pada tanggal ini.")
 
-            # Grafik Tren (berdasarkan filter populasi, tapi semua tanggal)
             st.divider()
-            st.subheader("Tren Kehadiran (Sesuai Filter Populasi)")
+            st.subheader("Tren Kehadiran (Berdasarkan Filter Populasi)")
             df_pemeriksaan_tren = df_pemeriksaan[df_pemeriksaan['warga_id'].isin(df_warga_final_filter['id'])]
             if not df_pemeriksaan_tren.empty:
                 kehadiran_per_hari = df_pemeriksaan_tren.groupby('tanggal_pemeriksaan').size().reset_index(name='jumlah_hadir')
