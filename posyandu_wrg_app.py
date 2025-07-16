@@ -244,17 +244,20 @@ def page_input_pemeriksaan():
         st.error(f"Gagal mengambil daftar warga: {e}")
 
 # ==============================================================================
-# HALAMAN 3: DASBOR & LAPORAN
+# HALAMAN 3: DASBOR & LAPORAN (VERSI BARU INTERAKTIF)
 # ==============================================================================
 
 def page_dashboard():
-    st.header("📈 Dasbor & Laporan")
+    st.header("📈 Dasbor & Laporan Interaktif")
+    st.sidebar.header("Panel Kontrol Laporan")
+    
     if not supabase: return
 
     try:
-        warga_response = supabase.table("warga").select("id, tanggal_lahir, jenis_kelamin").execute()
+        # Ambil semua data sekali di awal
+        warga_response = supabase.table("warga").select("id, nik, nama_lengkap, tanggal_lahir, jenis_kelamin, rt, blok").execute()
         pemeriksaan_response = supabase.table("pemeriksaan").select("tanggal_pemeriksaan, warga_id").execute()
-
+        
         if not warga_response.data:
             st.info("Belum ada data warga untuk ditampilkan di laporan.")
             return
@@ -262,106 +265,90 @@ def page_dashboard():
         df_warga = pd.DataFrame(warga_response.data)
         df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data)
         
+        # Hitung usia untuk semua warga
         df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
         df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
         
-        # --- PERUBAHAN 1: Hitung semua kategori usia ---
-        total_warga = len(df_warga)
-        jumlah_laki = df_warga[df_warga['jenis_kelamin'] == 'L'].shape[0]
-        jumlah_perempuan = total_warga - jumlah_laki
+        # --- PANEL KONTROL DI SIDEBAR ---
         
-        jumlah_bayi = df_warga[df_warga['usia'] <= 0.5].shape[0]
-        jumlah_baduta = df_warga[(df_warga['usia'] > 0.5) & (df_warga['usia'] < 2)].shape[0]
-        jumlah_balita = df_warga[(df_warga['usia'] >= 2) & (df_warga['usia'] < 5)].shape[0]
-        jumlah_anak = df_warga[(df_warga['usia'] >= 5) & (df_warga['usia'] < 10)].shape[0]
-        jumlah_remaja = df_warga[(df_warga['usia'] >= 10) & (df_warga['usia'] < 20)].shape[0]
-        jumlah_dewasa = df_warga[(df_warga['usia'] >= 20) & (df_warga['usia'] < 60)].shape[0]
-        jumlah_lansia = df_warga[df_warga['usia'] >= 60].shape[0]
+        # Filter Rentang Tanggal
+        tgl_mulai = st.sidebar.date_input("Tanggal Mulai", date.today() - timedelta(days=30))
+        tgl_akhir = st.sidebar.date_input("Tanggal Akhir", date.today())
 
-        # --- PERUBAHAN 2: Tampilkan semua metrik demografi ---
-        st.subheader("Demografi Warga Terdaftar")
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Total Warga", total_warga)
-        col2.metric("Laki-laki", jumlah_laki)
-        col3.metric("Perempuan", jumlah_perempuan)
+        # Filter Geografis
+        rt_list = ["Semua"] + sorted(df_warga['rt'].unique().tolist())
+        selected_rt = st.sidebar.selectbox("Pilih RT:", rt_list)
         
-        col_bayi, col_baduta, col_balita, col_anak = st.columns(4)
-        col_bayi.metric("Bayi (0-6 bln)", jumlah_bayi)
-        col_baduta.metric("Baduta (6 bln - 2 thn)", jumlah_baduta)
-        col_balita.metric("Balita (2-5 thn)", jumlah_balita)
-        col_anak.metric("Anak-anak (5-10 thn)", jumlah_anak)
-
-        col_remaja, col_dewasa, col_lansia, _ = st.columns(4)
-        col_remaja.metric("Remaja (10-20 thn)", jumlah_remaja)
-        col_dewasa.metric("Dewasa (20-60 thn)", jumlah_dewasa)
-        col_lansia.metric("Lansia (60+ thn)", jumlah_lansia)
-
-        st.divider()
-
-        if df_pemeriksaan.empty:
-            st.info("Belum ada data pemeriksaan untuk ditampilkan di laporan.")
-            return
-
-        # --- PERUBAHAN 3: Update filter grafik tren ---
-        st.subheader("Tren Kehadiran Warga ke Posyandu")
+        # Filter Demografi
+        kategori_usia_list = ["Semua", "Bayi (0-6 bln)", "Baduta (6 bln - <2 thn)", "Balita (2 - <5 thn)", "Anak-anak (5 - <10 thn)", "Remaja (10 - <20 thn)", "Dewasa (20 - <60 thn)", "Lansia (60+ thn)"]
+        selected_kategori = st.sidebar.selectbox("Pilih Kategori Usia:", kategori_usia_list)
         
-        filter_options = ['Semua Warga', 'Laki-laki', 'Perempuan', 'Bayi', 'Baduta', 'Balita', 'Anak-anak', 'Remaja', 'Dewasa', 'Lansia']
-        selected_filter = st.selectbox("Tampilkan tren untuk:", filter_options)
+        selected_gender = st.sidebar.selectbox("Pilih Jenis Kelamin:", ["Semua", "Laki-laki", "Perempuan"])
 
-        df_pemeriksaan_warga = pd.merge(df_pemeriksaan, df_warga, left_on='warga_id', right_on='id')
-        
-        df_filtered = df_pemeriksaan_warga
-        if selected_filter == 'Laki-laki':
-            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['jenis_kelamin'] == 'Laki-laki']
-        elif selected_filter == 'Perempuan':
-            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['jenis_kelamin'] == 'Perempuan']
-        elif selected_filter == 'Bayi':
-            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['usia'] <= 0.5]
-        elif selected_filter == 'Baduta':
-            df_filtered = df_pemeriksaan_warga[(df_pemeriksaan_warga['usia'] > 0.5) & (df_pemeriksaan_warga['usia'] < 2)]
-        elif selected_filter == 'Balita':
-            df_filtered = df_pemeriksaan_warga[(df_pemeriksaan_warga['usia'] >= 2) & (df_pemeriksaan_warga['usia'] < 5)]
-        elif selected_filter == 'Anak-anak':
-            df_filtered = df_pemeriksaan_warga[(df_pemeriksaan_warga['usia'] >= 5) & (df_pemeriksaan_warga['usia'] < 10)]
-        elif selected_filter == 'Remaja':
-            df_filtered = df_pemeriksaan_warga[(df_pemeriksaan_warga['usia'] >= 10) & (df_pemeriksaan_warga['usia'] < 20)]
-        elif selected_filter == 'Dewasa':
-            df_filtered = df_pemeriksaan_warga[(df_pemeriksaan_warga['usia'] >= 20) & (df_pemeriksaan_warga['usia'] < 60)]
-        elif selected_filter == 'Lansia':
-            df_filtered = df_pemeriksaan_warga[df_pemeriksaan_warga['usia'] >= 60]
+        if st.sidebar.button("Tampilkan Laporan"):
+            # --- PROSES FILTERING DATA ---
             
-        if not df_filtered.empty:
-            df_filtered['tanggal_pemeriksaan'] = pd.to_datetime(df_filtered['tanggal_pemeriksaan'])
-            kehadiran_per_hari = df_filtered.groupby('tanggal_pemeriksaan').size().reset_index(name='jumlah_hadir')
+            # 1. Filter warga berdasarkan demografi
+            df_warga_filtered = df_warga.copy()
+            if selected_rt != "Semua":
+                df_warga_filtered = df_warga_filtered[df_warga_filtered['rt'] == selected_rt]
+            if selected_gender != "Semua":
+                df_warga_filtered = df_warga_filtered[df_warga_filtered['jenis_kelamin'] == selected_gender]
             
-            fig1, ax1 = plt.subplots(figsize=(10, 5))
-            ax1.plot(kehadiran_per_hari['tanggal_pemeriksaan'], kehadiran_per_hari['jumlah_hadir'], marker='o', linestyle='-')
-            ax1.set_title(f"Jumlah Kehadiran per Tanggal Posyandu ({selected_filter})")
-            ax1.set_xlabel("Tanggal"); ax1.set_ylabel("Jumlah Warga Hadir")
-            ax1.grid(True, linestyle='--', alpha=0.6); plt.xticks(rotation=45)
-            fig1.tight_layout(); st.pyplot(fig1)
-        else:
-            st.info(f"Tidak ada data kehadiran untuk kategori '{selected_filter}'.")
+            if selected_kategori != "Semua":
+                if selected_kategori == "Bayi (0-6 bln)": df_warga_filtered = df_warga_filtered[df_warga_filtered['usia'] <= 0.5]
+                elif selected_kategori == "Baduta (6 bln - <2 thn)": df_warga_filtered = df_warga_filtered[(df_warga_filtered['usia'] > 0.5) & (df_warga_filtered['usia'] < 2)]
+                elif selected_kategori == "Balita (2 - <5 thn)": df_warga_filtered = df_warga_filtered[(df_warga_filtered['usia'] >= 2) & (df_warga_filtered['usia'] < 5)]
+                elif selected_kategori == "Anak-anak (5 - <10 thn)": df_warga_filtered = df_warga_filtered[(df_warga_filtered['usia'] >= 5) & (df_warga_filtered['usia'] < 10)]
+                elif selected_kategori == "Remaja (10 - <20 thn)": df_warga_filtered = df_warga_filtered[(df_warga_filtered['usia'] >= 10) & (df_warga_filtered['usia'] < 20)]
+                elif selected_kategori == "Dewasa (20 - <60 thn)": df_warga_filtered = df_warga_filtered[(df_warga_filtered['usia'] >= 20) & (df_warga_filtered['usia'] < 60)]
+                elif selected_kategori == "Lansia (60+ thn)": df_warga_filtered = df_warga_filtered[df_warga_filtered['usia'] >= 60]
 
-        st.divider()
+            # 2. Filter data pemeriksaan berdasarkan warga yang sudah terfilter dan rentang tanggal
+            df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.date
+            df_pemeriksaan_filtered = df_pemeriksaan[
+                (df_pemeriksaan['warga_id'].isin(df_warga_filtered['id'])) &
+                (df_pemeriksaan['tanggal_pemeriksaan'] >= tgl_mulai) &
+                (df_pemeriksaan['tanggal_pemeriksaan'] <= tgl_akhir)
+            ]
 
-        # --- Grafik Proporsi Kehadiran ---
-        st.subheader("Proporsi Kehadiran pada Posyandu Terakhir")
-        tanggal_terakhir = df_pemeriksaan['tanggal_pemeriksaan'].max()
-        hadir_terakhir = df_pemeriksaan[df_pemeriksaan['tanggal_pemeriksaan'] == tanggal_terakhir].shape[0]
-        tidak_hadir = total_warga - hadir_terakhir
-
-        if hadir_terakhir > 0:
-            labels = 'Hadir', 'Tidak Hadir'
-            sizes = [hadir_terakhir, tidak_hadir]
-            colors = ['#4CAF50', '#FFC107']
+            # --- TAMPILKAN HASIL LAPORAN ---
             
-            fig2, ax2 = plt.subplots()
-            ax2.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors, wedgeprops={'edgecolor': 'white'})
-            ax2.axis('equal'); ax2.set_title(f"Proporsi Kehadiran pada {pd.to_datetime(tanggal_terakhir).strftime('%d %B %Y')}")
-            st.pyplot(fig2)
-        else:
-            st.info("Tidak ada data kehadiran pada tanggal terakhir.")
+            # Judul dinamis
+            st.subheader(f"Laporan untuk: {selected_rt} | {selected_kategori} | {selected_gender}")
+            st.caption(f"Periode: {tgl_mulai.strftime('%d %b %Y')} - {tgl_akhir.strftime('%d %b %Y')}")
+
+            # Metrik Utama
+            total_warga_terfilter = len(df_warga_filtered)
+            jumlah_kunjungan = len(df_pemeriksaan_filtered)
+            partisipasi = (jumlah_kunjungan / total_warga_terfilter * 100) if total_warga_terfilter > 0 else 0
+            
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Total Warga Sesuai Filter", f"{total_warga_terfilter} orang")
+            col2.metric("Jumlah Kunjungan", f"{jumlah_kunjungan} kali")
+            col3.metric("Tingkat Partisipasi", f"{partisipasi:.1f}%")
+
+            st.divider()
+
+            if df_pemeriksaan_filtered.empty:
+                st.warning("Tidak ada data pemeriksaan yang cocok dengan filter yang Anda pilih.")
+            else:
+                # Grafik Tren Kehadiran
+                st.write("#### Tren Kehadiran")
+                kehadiran_per_hari = df_pemeriksaan_filtered.groupby('tanggal_pemeriksaan').size().reset_index(name='jumlah_hadir')
+                fig1, ax1 = plt.subplots(figsize=(10, 4))
+                ax1.plot(kehadiran_per_hari['tanggal_pemeriksaan'], kehadiran_per_hari['jumlah_hadir'], marker='o', linestyle='-')
+                ax1.set_ylabel("Jumlah Kehadiran")
+                ax1.grid(True, linestyle='--', alpha=0.6)
+                plt.xticks(rotation=45)
+                fig1.tight_layout()
+                st.pyplot(fig1)
+
+                # Tabel Data Rinci
+                st.write("#### Data Rinci")
+                # Gabungkan dengan nama untuk ditampilkan
+                df_laporan = pd.merge(df_pemeriksaan_filtered, df_warga[['id', 'nama_lengkap']], left_on='warga_id', right_on='id')
+                st.dataframe(df_laporan[['tanggal_pemeriksaan', 'nama_lengkap', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg']])
 
     except Exception as e:
         st.error(f"Gagal membuat laporan: {e}")
@@ -375,33 +362,12 @@ def plot_individual_trends(df_pemeriksaan):
     df_pemeriksaan = df_pemeriksaan.sort_values(by='tanggal_pemeriksaan')
 
     col1, col2 = st.columns(2)
-
     with col1:
-        # Grafik Tensi
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['tensi_sistolik'], marker='o', label='Sistolik')
-        ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['tensi_diastolik'], marker='o', label='Diastolik')
-        ax.set_title("Tren Tensi Darah"); ax.set_ylabel("mmHg"); ax.legend(); ax.grid(True, linestyle=':')
-        plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
-
-        # Grafik Gula Darah
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['gula_darah'], marker='o', color='g')
-        ax.set_title("Tren Gula Darah"); ax.set_ylabel("mg/dL"); ax.grid(True, linestyle=':')
-        plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
-
+        fig, ax = plt.subplots(figsize=(6, 4)); ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['tensi_sistolik'], marker='o', label='Sistolik'); ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['tensi_diastolik'], marker='o', label='Diastolik'); ax.set_title("Tren Tensi Darah"); ax.set_ylabel("mmHg"); ax.legend(); ax.grid(True, linestyle=':'); plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
+        fig, ax = plt.subplots(figsize=(6, 4)); ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['gula_darah'], marker='o', color='g'); ax.set_title("Tren Gula Darah"); ax.set_ylabel("mg/dL"); ax.grid(True, linestyle=':'); plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
     with col2:
-        # Grafik Berat Badan
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['berat_badan_kg'], marker='o', color='r')
-        ax.set_title("Tren Berat Badan"); ax.set_ylabel("kg"); ax.grid(True, linestyle=':')
-        plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
-        
-        # Grafik Kolesterol
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['kolesterol'], marker='o', color='purple')
-        ax.set_title("Tren Kolesterol"); ax.set_ylabel("mg/dL"); ax.grid(True, linestyle=':')
-        plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
+        fig, ax = plt.subplots(figsize=(6, 4)); ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['berat_badan_kg'], marker='o', color='r'); ax.set_title("Tren Berat Badan"); ax.set_ylabel("kg"); ax.grid(True, linestyle=':'); plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
+        fig, ax = plt.subplots(figsize=(6, 4)); ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['kolesterol'], marker='o', color='purple'); ax.set_title("Tren Kolesterol"); ax.set_ylabel("mg/dL"); ax.grid(True, linestyle=':'); plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
 
 # ==============================================================================
 # BAGIAN UTAMA APLIKASI (MAIN)
