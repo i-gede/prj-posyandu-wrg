@@ -251,7 +251,7 @@ def page_input_pemeriksaan():
 # ==============================================================================
 
 def page_dashboard():
-    st.header("📈 Dasbor & Laporan")
+    st.header("📈 Dashboard & Laporan")
     if not supabase: return
 
     try:
@@ -275,7 +275,7 @@ def page_dashboard():
         df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.date
         available_dates = sorted(df_pemeriksaan['tanggal_pemeriksaan'].unique(), reverse=True)
         selected_date = st.selectbox(
-            "Filter 1: Pilih Tanggal Pelaksanaan Posyandu",
+            "Pilih Tanggal Pelaksanaan Posyandu",
             options=available_dates,
             format_func=lambda d: d.strftime('%d %B %Y'),
             index=None,
@@ -284,7 +284,7 @@ def page_dashboard():
 
         if selected_date:
             wilayah_options = ["Lingkungan (Semua RT)"] + sorted(df_warga['rt'].dropna().unique().tolist())
-            selected_wilayah = st.selectbox("Filter 2: Tampilkan data untuk wilayah", wilayah_options)
+            selected_wilayah = st.selectbox("Tampilkan data untuk wilayah", wilayah_options)
 
             df_warga_wilayah = df_warga.copy()
             if selected_wilayah != "Lingkungan (Semua RT)":
@@ -294,7 +294,7 @@ def page_dashboard():
             laki_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L'].shape[0]
             perempuan_wilayah = total_warga_wilayah - laki_wilayah
             
-            st.write("#### Demografi Wilayah Terpilih")
+            st.write("#### Demografi Wilayah")
             col1, col2, col3 = st.columns(3)
             col1.metric("Total Warga", total_warga_wilayah)
             col2.metric("Laki-laki", laki_wilayah)
@@ -306,7 +306,7 @@ def page_dashboard():
                 kategori_usia_list = ["Semua", "Bayi (0-6 bln)", "Baduta (6 bln - <2 thn)", "Balita (2 - <5 thn)", "Anak-anak (5 - <10 thn)", "Remaja (10 - <20 thn)", "Dewasa (20 - <60 thn)", "Lansia (60+ thn)"]
                 selected_kategori = st.selectbox("Filter 3: Kategori Usia", kategori_usia_list)
             with col_f2:
-                selected_gender = st.selectbox("Filter 4: Jenis Kelamin", ["Semua", "Laki-laki", "Perempuan"])
+                selected_gender = st.selectbox("Jenis Kelamin", ["Semua", "Laki-laki", "Perempuan"])
 
             df_warga_final_filter = df_warga_wilayah.copy()
             if selected_gender != "Semua":
@@ -349,7 +349,7 @@ def page_dashboard():
                     ax_pie.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors, wedgeprops={'edgecolor': 'white'})
                     ax_pie.axis('equal'); st.pyplot(fig_pie)
 
-                st.write("#### Data Rinci Kehadiran")
+                st.write("#### Data Rinci Kunjungan")
                 # --- PERBAIKAN 2: Menggabungkan dengan df_warga yang memiliki semua kolom ---
                 df_laporan_harian = pd.merge(df_pemeriksaan_harian, df_warga, left_on='warga_id', right_on='id', how='left')
                 st.dataframe(df_laporan_harian[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']])
@@ -357,7 +357,7 @@ def page_dashboard():
                 st.info("Tidak ada data kehadiran yang cocok dengan filter yang dipilih pada tanggal ini.")
 
             st.divider()
-            st.subheader("Tren Kehadiran (Berdasarkan Filter Populasi)")
+            st.subheader("Tren Kunjungan")
             df_pemeriksaan_tren = df_pemeriksaan[df_pemeriksaan['warga_id'].isin(df_warga_final_filter['id'])]
             if not df_pemeriksaan_tren.empty:
                 kehadiran_per_hari = df_pemeriksaan_tren.groupby('tanggal_pemeriksaan').size().reset_index(name='jumlah_hadir')
@@ -398,7 +398,7 @@ st.sidebar.title("🏥 Aplikasi Posyandu Warga")
 page_options = {
     "👨‍👩‍👧‍👦 Manajemen Data Warga": page_manajemen_warga,
     "🗓️ Input Kehadiran & Pemeriksaan": page_input_pemeriksaan,
-    "📈 Dasbor & Laporan": page_dashboard
+    "📈 Dashboard & Laporan": page_dashboard
 }
 
 selected_page = st.sidebar.radio("Pilih Halaman:", page_options.keys())
