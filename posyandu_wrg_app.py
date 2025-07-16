@@ -255,9 +255,10 @@ def page_dashboard():
     if not supabase: return
 
     try:
-        warga_response = supabase.table("warga").select("id, tanggal_lahir, jenis_kelamin, rt, blok").execute()
+        # --- PERBAIKAN 1: Mengambil semua kolom dari kedua tabel ---
+        warga_response = supabase.table("warga").select("*").execute()
         pemeriksaan_response = supabase.table("pemeriksaan").select("*").execute()
-        
+
         if not warga_response.data:
             st.info("Belum ada data warga untuk ditampilkan di laporan.")
             return
@@ -268,11 +269,9 @@ def page_dashboard():
         df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
         df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
         
-        # --- PERUBAHAN UTAMA: Filter dipindahkan ke halaman utama ---
-        
+        # --- Filter di Halaman Utama ---
         st.subheader("Filter Laporan")
         
-        # Filter 1: Tanggal
         df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.date
         available_dates = sorted(df_pemeriksaan['tanggal_pemeriksaan'].unique(), reverse=True)
         selected_date = st.selectbox(
@@ -284,7 +283,6 @@ def page_dashboard():
         )
 
         if selected_date:
-            # Filter 2: Wilayah
             wilayah_options = ["Lingkungan (Semua RT)"] + sorted(df_warga['rt'].dropna().unique().tolist())
             selected_wilayah = st.selectbox("Filter 2: Tampilkan data untuk wilayah", wilayah_options)
 
@@ -292,7 +290,6 @@ def page_dashboard():
             if selected_wilayah != "Lingkungan (Semua RT)":
                 df_warga_wilayah = df_warga[df_warga['rt'] == selected_wilayah]
             
-            # Tampilkan demografi berdasarkan wilayah terpilih
             total_warga_wilayah = len(df_warga_wilayah)
             laki_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L'].shape[0]
             perempuan_wilayah = total_warga_wilayah - laki_wilayah
@@ -303,7 +300,6 @@ def page_dashboard():
             col2.metric("Laki-laki", laki_wilayah)
             col3.metric("Perempuan", perempuan_wilayah)
 
-            # Filter 3 & 4: Kategori Usia & Jenis Kelamin
             st.write("#### Persempit Populasi (Opsional)")
             col_f1, col_f2 = st.columns(2)
             with col_f1:
@@ -312,7 +308,6 @@ def page_dashboard():
             with col_f2:
                 selected_gender = st.selectbox("Filter 4: Jenis Kelamin", ["Semua", "Laki-laki", "Perempuan"])
 
-            # Terapkan filter demografi
             df_warga_final_filter = df_warga_wilayah.copy()
             if selected_gender != "Semua":
                 gender_code = "L" if selected_gender == "Laki-laki" else "P"
@@ -346,9 +341,6 @@ def page_dashboard():
                 col_pie, col_empty = st.columns([1, 1])
                 with col_pie:
                     tidak_hadir_hari_itu = total_warga_terfilter - hadir_hari_itu
-                    
-                    # --- PERBAIKAN DI SINI ---
-                    # Memecah satu baris yang salah menjadi tiga baris yang benar
                     labels = 'Hadir', 'Tidak Hadir'
                     sizes = [hadir_hari_itu, tidak_hadir_hari_itu]
                     colors = ['#4CAF50', '#FFC107']
@@ -358,6 +350,7 @@ def page_dashboard():
                     ax_pie.axis('equal'); st.pyplot(fig_pie)
 
                 st.write("#### Data Rinci Kehadiran")
+                # --- PERBAIKAN 2: Menggabungkan dengan df_warga yang memiliki semua kolom ---
                 df_laporan_harian = pd.merge(df_pemeriksaan_harian, df_warga, left_on='warga_id', right_on='id', how='left')
                 st.dataframe(df_laporan_harian[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']])
             else:
@@ -377,6 +370,7 @@ def page_dashboard():
 
     except Exception as e:
         st.error(f"Gagal membuat laporan: {e}")
+
 
 # ==============================================================================
 # FUNGSI BARU: PLOT TREN INDIVIDU
