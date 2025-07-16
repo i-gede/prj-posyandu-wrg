@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from supabase import create_client, Client
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 # ==============================================================================
 # KONEKSI KE DATABASE SUPABASE
