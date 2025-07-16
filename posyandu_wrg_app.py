@@ -31,10 +31,14 @@ supabase = init_connection()
 
 
 # ==============================================================================
-# FUNGSI BARU: PEMBUAT LAPORAN PDF
+# FUNGSI BARU: PEMBUAT LAPORAN PDF (VERSI DIPERBAIKI)
 # ==============================================================================
 
-def generate_pdf_report(filters, metrics, df_tren, df_rinci, fig_tren, fig_pie):
+def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
+    """
+    Membuat laporan PDF dari data yang sudah difilter.
+    Fungsi ini menerima figure objects (fig_tren, fig_pie) langsung.
+    """
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
     
@@ -54,7 +58,7 @@ def generate_pdf_report(filters, metrics, df_tren, df_rinci, fig_tren, fig_pie):
     elements.append(Spacer(1, 0.3 * inch))
 
     # Ringkasan Metrik
-    elements.append(Paragraph("Ringkasan Laporan", styles['h2']))
+    elements.append(Paragraph(f"Ringkasan Laporan untuk {filters['selected_date_str']}", styles['h2']))
     
     metric_data = [
         ['Total Warga (Sesuai Filter)', f": {metrics['total_warga']}"],
@@ -62,48 +66,41 @@ def generate_pdf_report(filters, metrics, df_tren, df_rinci, fig_tren, fig_pie):
         ['Tingkat Partisipasi pada Tanggal Terpilih', f": {metrics['partisipasi_hari_ini']:.1f}%"]
     ]
     metric_table = Table(metric_data, colWidths=[2.5*inch, 2.5*inch])
-    metric_table.setStyle(TableStyle([
-        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
-        ('FONTNAME', (0,0), (-1,-1), 'Helvetica')
-    ]))
+    metric_table.setStyle(TableStyle([('ALIGN', (0,0), (-1,-1), 'LEFT'), ('FONTNAME', (0,0), (-1,-1), 'Helvetica')]))
     elements.append(metric_table)
     elements.append(Spacer(1, 0.3 * inch))
 
     # Grafik Pie Chart
     if fig_pie:
-        img_buffer = BytesIO()
-        fig_pie.savefig(img_buffer, format='png', dpi=300)
-        img_buffer.seek(0)
-        elements.append(Image(img_buffer, width=3*inch, height=3*inch))
-        img_buffer.close()
+        img_buffer_pie = BytesIO()
+        fig_pie.savefig(img_buffer_pie, format='png', dpi=300, bbox_inches='tight')
+        img_buffer_pie.seek(0)
+        elements.append(Image(img_buffer_pie, width=3*inch, height=2.5*inch))
+        img_buffer_pie.close()
     
     elements.append(Spacer(1, 0.3 * inch))
     
     # Grafik Tren
     elements.append(Paragraph("Tren Kehadiran (Periode Terpilih)", styles['h2']))
     if fig_tren:
-        img_buffer = BytesIO()
-        fig_tren.savefig(img_buffer, format='png', dpi=300)
-        img_buffer.seek(0)
-        elements.append(Image(img_buffer, width=6*inch, height=3*inch))
-        img_buffer.close()
+        img_buffer_tren = BytesIO()
+        fig_tren.savefig(img_buffer_tren, format='png', dpi=300, bbox_inches='tight')
+        img_buffer_tren.seek(0)
+        elements.append(Image(img_buffer_tren, width=6*inch, height=3*inch))
+        img_buffer_tren.close()
 
     elements.append(PageBreak())
 
     # Tabel Data Rinci
-    elements.append(Paragraph("Data Rinci Kehadiran", styles['h2']))
+    elements.append(Paragraph(f"Data Rinci Kehadiran - {filters['selected_date_str']}", styles['h2']))
     elements.append(Spacer(1, 0.2 * inch))
     
-    # Konversi DataFrame ke list of lists untuk tabel
     table_data = [df_rinci.columns.to_list()] + df_rinci.values.tolist()
     data_rinci_table = Table(table_data, repeatRows=1)
     data_rinci_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.grey),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0,0), (-1,0), 12),
-        ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+        ('BACKGROUND', (0,0), (-1,0), colors.grey), ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'), ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0,0), (-1,0), 12), ('BACKGROUND', (0,1), (-1,-1), colors.beige),
         ('GRID', (0,0), (-1,-1), 1, colors.black)
     ]))
     elements.append(data_rinci_table)
@@ -458,7 +455,7 @@ def page_dashboard():
             else:
                 st.info("Tidak ada data pemeriksaan untuk ditampilkan di grafik tren sesuai filter populasi.")
 
-            # Tombol Unduh PDF
+            # --- PERBAIKAN PADA PEMANGGILAN FUNGSI PDF ---
             st.divider()
             if hadir_hari_itu > 0:
                 pdf_buffer = generate_pdf_report(
