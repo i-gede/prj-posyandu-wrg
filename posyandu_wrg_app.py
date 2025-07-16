@@ -69,7 +69,7 @@ def page_manajemen_warga():
 
         warga_to_manage = st.selectbox(
             "Pilih warga untuk dikelola:",
-            options=df_warga['nama_lengkap'] + " (RT-" + df_warga['rt'] + ")"+ " (BLOK-" + df_warga['blok'] + ")",
+            options=df_warga['nama_lengkap'] + " (RT-" + df_warga['rt'] + ", BLOK-" + df_warga['blok'] + ")",
             index=None,
             placeholder="Pilih warga..."
         )
@@ -172,7 +172,7 @@ def page_input_pemeriksaan():
             return
 
         df_warga = pd.DataFrame(response.data)
-        df_warga['display_name'] = df_warga['nama_lengkap'] + " (RT-" + df_warga['rt'] + ")" + " (BLOK-" + df_warga['blok'] + ")"
+        df_warga['display_name'] = df_warga['nama_lengkap'] + " (RT-" + df_warga['rt'] + ", BLOK-" + df_warga['blok'] + ")"
         
         with st.form("pemeriksaan_form", clear_on_submit=True):
             tanggal_pemeriksaan = st.date_input("Tanggal Posyandu/Pemeriksaan", value=date.today())
