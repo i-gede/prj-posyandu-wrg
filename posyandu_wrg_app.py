@@ -192,13 +192,16 @@ def page_input_pemeriksaan():
     if not supabase: return
 
     try:
-        response = supabase.table("warga").select("id, nik, nama_lengkap").execute()
+        # --- PERUBAHAN 1: Mengambil kolom 'rt' dan 'blok' dari database ---
+        response = supabase.table("warga").select("id, nik, nama_lengkap, rt, blok").execute()
         if not response.data:
             st.warning("Belum ada data warga. Silakan tambahkan data warga terlebih dahulu di halaman 'Manajemen Data Warga'.")
             return
 
         df_warga = pd.DataFrame(response.data)
-        df_warga['display_name'] = df_warga['nama_lengkap'] + " (RT-" + df_warga['rt'] + ", BLOK-" + df_warga['blok'] + ")"
+        
+        # --- PERUBAHAN 2: Membuat display_name menggunakan RT dan Blok ---
+        df_warga['display_name'] = df_warga['nama_lengkap'] + " (RT-" + df_warga['rt'].astype(str) + ", BLOK-" + df_warga['blok'].astype(str) + ")"
         
         with st.form("pemeriksaan_form", clear_on_submit=True):
             tanggal_pemeriksaan = st.date_input("Tanggal Posyandu/Pemeriksaan", value=date.today())
