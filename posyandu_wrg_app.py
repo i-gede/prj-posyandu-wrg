@@ -346,7 +346,13 @@ def page_dashboard():
                 col_pie, col_empty = st.columns([1, 1])
                 with col_pie:
                     tidak_hadir_hari_itu = total_warga_terfilter - hadir_hari_itu
-                    labels, sizes, colors = 'Hadir', 'Tidak Hadir', [hadir_hari_itu, tidak_hadir_hari_itu], ['#4CAF50', '#FFC107']
+                    
+                    # --- PERBAIKAN DI SINI ---
+                    # Memecah satu baris yang salah menjadi tiga baris yang benar
+                    labels = 'Hadir', 'Tidak Hadir'
+                    sizes = [hadir_hari_itu, tidak_hadir_hari_itu]
+                    colors = ['#4CAF50', '#FFC107']
+                    
                     fig_pie, ax_pie = plt.subplots(figsize=(4, 4))
                     ax_pie.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors, wedgeprops={'edgecolor': 'white'})
                     ax_pie.axis('equal'); st.pyplot(fig_pie)
