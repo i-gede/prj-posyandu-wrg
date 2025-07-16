@@ -256,7 +256,10 @@ def page_dashboard():
     try:
         # Ambil semua data sekali di awal
         warga_response = supabase.table("warga").select("id, nik, nama_lengkap, tanggal_lahir, jenis_kelamin, rt, blok").execute()
-        pemeriksaan_response = supabase.table("pemeriksaan").select("tanggal_pemeriksaan, warga_id").execute()
+        #pemeriksaan_response = supabase.table("pemeriksaan").select("tanggal_pemeriksaan, warga_id").execute()
+        # --- PERBAIKAN DI SINI ---
+        # Mengambil semua kolom dari tabel pemeriksaan dengan select("*")
+        pemeriksaan_response = supabase.table("pemeriksaan").select("*").execute()
         
         if not warga_response.data:
             st.info("Belum ada data warga untuk ditampilkan di laporan.")
