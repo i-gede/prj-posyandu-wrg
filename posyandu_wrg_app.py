@@ -332,7 +332,7 @@ def page_dashboard():
             partisipasi = (jumlah_kunjungan / total_warga_terfilter * 100) if total_warga_terfilter > 0 else 0
             
             col1, col2, col3 = st.columns(3)
-            col1.metric("Total Warga Sesuai Filter", f"{total_warga_terfilter} orang")
+            col1.metric("Total Warga", f"{total_warga_terfilter} orang")
             col2.metric("Jumlah Kunjungan", f"{jumlah_kunjungan} kali")
             col3.metric("Tingkat Partisipasi", f"{partisipasi:.1f}%")
 
@@ -356,7 +356,7 @@ def page_dashboard():
                 st.write("#### Data Rinci")
                 # Gabungkan dengan nama untuk ditampilkan
                 df_laporan = pd.merge(df_pemeriksaan_filtered, df_warga[['id', 'nama_lengkap']], left_on='warga_id', right_on='id')
-                st.dataframe(df_laporan[['tanggal_pemeriksaan', 'nama_lengkap', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg']])
+                st.dataframe(df_laporan[['tanggal_pemeriksaan', 'nama_lengkap', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'lingkar_lengan_cm', 'lingkar_perut_cm']])
 
     except Exception as e:
         st.error(f"Gagal membuat laporan: {e}")
