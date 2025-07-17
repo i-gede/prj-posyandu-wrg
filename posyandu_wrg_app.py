@@ -52,7 +52,7 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
     elements.append(Paragraph("Laporan Posyandu Mawar - KBU", styles['h1']))
     elements.append(Spacer(1, 0.2 * inch))
     
-    filter_text = f"<b>Filter Laporan:</b><br/>- Tanggal: {filters['selected_date_str']}<br/>- Wilayah: {filters['rt']}<br/>- Kategori Usia: {filters['kategori']}<br/>- Jenis Kelamin: {filters['gender']}"
+    filter_text = f"<b>Laporan:</b><br/>- Tanggal: {filters['selected_date_str']}<br/>- Wilayah: {filters['rt']}<br/>- Kategori Usia: {filters['kategori']}<br/>- Jenis Kelamin: {filters['gender']}"
     elements.append(Paragraph(filter_text, styles['Normal']))
     elements.append(Spacer(1, 0.3 * inch))
 
@@ -388,7 +388,7 @@ def page_dashboard():
             col_f1, col_f2 = st.columns(2)
             with col_f1:
                 kategori_usia_list = ["Semua", "Bayi (0-6 bln)", "Baduta (6 bln - <2 thn)", "Balita (2 - <5 thn)", "Anak-anak (5 - <10 thn)", "Remaja (10 - <20 thn)", "Dewasa (20 - <60 thn)", "Lansia (60+ thn)"]
-                selected_kategori = st.selectbox("Filter 3: Kategori Usia", kategori_usia_list)
+                selected_kategori = st.selectbox("Kategori Usia", kategori_usia_list)
             with col_f2:
                 selected_gender = st.selectbox("Jenis Kelamin", ["Semua", "Laki-laki", "Perempuan"])
 
@@ -418,7 +418,7 @@ def page_dashboard():
             partisipasi_hari_itu = (hadir_hari_itu / total_warga_terfilter * 100) if total_warga_terfilter > 0 else 0
             
             col_m1, col_m2 = st.columns(2)
-            col_m1.metric("Jumlah Kehadiran", f"{hadir_hari_itu} dari {total_warga_terfilter} warga")
+            col_m1.metric("Jumlah Kunjungan", f"{hadir_hari_itu} dari {total_warga_terfilter} warga")
             col_m2.metric("Tingkat Partisipasi", f"{partisipasi_hari_itu:.1f}%")
 
             if hadir_hari_itu > 0:
@@ -447,7 +447,7 @@ def page_dashboard():
                 kehadiran_per_hari = df_pemeriksaan_tren.groupby('tanggal_pemeriksaan').size().reset_index(name='jumlah_hadir')
                 fig_tren, ax_tren = plt.subplots(figsize=(10, 4))
                 ax_tren.plot(kehadiran_per_hari['tanggal_pemeriksaan'], kehadiran_per_hari['jumlah_hadir'], marker='o', linestyle='-')
-                ax_tren.set_ylabel("Jumlah Kehadiran"); ax_tren.grid(True, linestyle='--', alpha=0.6)
+                ax_tren.set_ylabel("Jumlah Kunjungan"); ax_tren.grid(True, linestyle='--', alpha=0.6)
                 plt.xticks(rotation=45); fig_tren.tight_layout(); st.pyplot(fig_tren)
             else:
                 st.info("Tidak ada data pemeriksaan untuk ditampilkan di grafik tren sesuai filter populasi.")
