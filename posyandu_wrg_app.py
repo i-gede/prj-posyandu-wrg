@@ -360,7 +360,8 @@ def page_dashboard():
         
         # Usia warga berdasarkan per hari ini!
         df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
-        df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
+        #df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
+        df_warga['usia'] = (selected_date - df_warga['tanggal_lahir']).dt.days / 365.25
         
         # --- Filter di Halaman Utama ---
         st.subheader("Laporan")
