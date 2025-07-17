@@ -505,15 +505,15 @@ def page_dashboard():
             # Tampilkan setiap baris demografi
             for i, (label, total, laki, perempuan) in enumerate(baris_demografi):
                 warna = warna_baris_list[i % len(warna_baris_list)]
-                with st.expander(f"**{label} (Total: {total})**", expanded=False):
-                    st.markdown(f"""
-                    <div style="background-color:{warna}; padding:12px 16px; border-radius:10px; margin-bottom:8px; font-size: 16px; font-family: sans-serif;">
-                        <strong>{label}</strong><br>
-                        👥 Total: <strong>{total}</strong> &nbsp;&nbsp;&nbsp;
-                        👦 Laki-laki: <strong>{laki}</strong> &nbsp;&nbsp;&nbsp;
-                        👧 Perempuan: <strong>{perempuan}</strong>
-                    </div>
-                    """, unsafe_allow_html=True)
+                #with st.expander(f"**{label} (Total: {total})**", expanded=False):
+                st.markdown(f"""
+                <div style="background-color:{warna}; padding:12px 16px; border-radius:10px; margin-bottom:8px; font-size: 16px; font-family: sans-serif;">
+                    <strong>{label}</strong><br>
+                    👥 Total: <strong>{total}</strong> &nbsp;&nbsp;&nbsp;
+                    👦 Laki-laki: <strong>{laki}</strong> &nbsp;&nbsp;&nbsp;
+                    👧 Perempuan: <strong>{perempuan}</strong>
+                </div>
+                """, unsafe_allow_html=True)
             #-------------------------------------------------------------------------------------------------------
 
             st.write("#### Pilih Kategori")
