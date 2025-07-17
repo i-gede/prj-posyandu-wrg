@@ -354,7 +354,7 @@ def page_dashboard():
         df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
         
         # --- Filter di Halaman Utama ---
-        st.subheader("Filter Laporan")
+        st.subheader("Laporan")
         
         df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.date
         available_dates = sorted(df_pemeriksaan['tanggal_pemeriksaan'].unique(), reverse=True)
@@ -384,7 +384,12 @@ def page_dashboard():
             col2.metric("Laki-laki", laki_wilayah)
             col3.metric("Perempuan", perempuan_wilayah)
 
-            st.write("#### Persempit Populasi (Opsional)")
+            r_1col1, r_1col2, r_1col3 = st.columns(3)
+            r_1col1.metric("Bayi", total_warga_wilayah)
+            r_1col2.metric("Baduta", laki_wilayah)
+            r_1col3.metric("Balita", perempuan_wilayah)
+
+            st.write("#### Pilih Kategori")
             col_f1, col_f2 = st.columns(2)
             with col_f1:
                 kategori_usia_list = ["Semua", "Bayi (0-6 bln)", "Baduta (6 bln - <2 thn)", "Balita (2 - <5 thn)", "Anak-anak (5 - <10 thn)", "Remaja (10 - <20 thn)", "Dewasa (20 - <60 thn)", "Lansia (60+ thn)"]
