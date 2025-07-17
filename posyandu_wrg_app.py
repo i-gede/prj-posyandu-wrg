@@ -358,20 +358,14 @@ def page_dashboard():
         df_warga = pd.DataFrame(warga_response.data)
         df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data)
         
-        # # Usia warga berdasarkan per hari ini!
-        # df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
-        # df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
-
-        # # Usia warga berdasarkan per hari tanggal pemeriksaan yang dipilih
+        # Usia warga berdasarkan per hari ini!
         df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
-        df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.date
-        #df_warga['tanggal_pemeriksaan'] = pd.to_datetime(df_warga['tanggal_pemeriksaan'])
-        df_warga['usia'] = (df_pemeriksaan['tanggal_pemeriksaan'] - df_warga['tanggal_lahir']).dt.days / 365.25
+        df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
         
         # --- Filter di Halaman Utama ---
         st.subheader("Laporan")
         
-        #df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.date
+        df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.date
         available_dates = sorted(df_pemeriksaan['tanggal_pemeriksaan'].unique(), reverse=True)
         selected_date = st.selectbox(
             "Pilih Tanggal Pelaksanaan Posyandu",
