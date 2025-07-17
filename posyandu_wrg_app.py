@@ -433,50 +433,87 @@ def page_dashboard():
             col2.metric("Laki-laki", laki_wilayah)
             col3.metric("Perempuan", perempuan_wilayah)
 
-            warna_baris = "#e6f7ff"  # biru muda sebagai contoh
-            st.markdown(f"""
-            <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px;">
-                <strong>Bayi (0-6 bln)</strong><br>
-                Total: {jumlah_bayi_wilayah} &nbsp;&nbsp;&nbsp;
-                👦 Laki-laki: {jumlah_bayi_laki_wilayah} &nbsp;&nbsp;&nbsp;
-                👧 Perempuan: {jumlah_bayi_perempuan_wilayah}
-            </div>
-            """, unsafe_allow_html=True)
+            # warna_baris = "#e6f7ff"  # biru muda sebagai contoh
+            # st.markdown(f"""
+            # <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px;">
+            #     <strong>Bayi (0-6 bln)</strong><br>
+            #     Total: {jumlah_bayi_wilayah} &nbsp;&nbsp;&nbsp;
+            #     👦 Laki-laki: {jumlah_bayi_laki_wilayah} &nbsp;&nbsp;&nbsp;
+            #     👧 Perempuan: {jumlah_bayi_perempuan_wilayah}
+            # </div>
+            # """, unsafe_allow_html=True)
             
             # r_1col1, r_1col2, r_1col3 = st.columns(3)
             # r_1col1.metric("Bayi (0-6 bln)", jumlah_bayi_wilayah)
             # r_1col2.metric("Laki-laki", jumlah_bayi_laki_wilayah)
             # r_1col3.metric("Perempuan", jumlah_bayi_perempuan_wilayah)
 
-            r_2col1, r_2col2, r_2col3 = st.columns(3)
-            r_2col1.metric("Baduta (6 bln - <2 thn)", jumlah_baduta_wilayah)
-            r_2col2.metric("Laki-laki", jumlah_baduta_laki_wilayah)
-            r_2col3.metric("Perempuan", jumlah_baduta_perempuan_wilayah)
+            # r_2col1, r_2col2, r_2col3 = st.columns(3)
+            # r_2col1.metric("Baduta (6 bln - <2 thn)", jumlah_baduta_wilayah)
+            # r_2col2.metric("Laki-laki", jumlah_baduta_laki_wilayah)
+            # r_2col3.metric("Perempuan", jumlah_baduta_perempuan_wilayah)
 
-            r_3col1, r_3col2, r_3col3 = st.columns(3)
-            r_3col1.metric("Balita (2 - <5 thn)", jumlah_balita_wilayah)
-            r_3col2.metric("Laki-laki", jumlah_balita_laki_wilayah)
-            r_3col3.metric("Perempuan", jumlah_balita_perempuan_wilayah)
+            # r_3col1, r_3col2, r_3col3 = st.columns(3)
+            # r_3col1.metric("Balita (2 - <5 thn)", jumlah_balita_wilayah)
+            # r_3col2.metric("Laki-laki", jumlah_balita_laki_wilayah)
+            # r_3col3.metric("Perempuan", jumlah_balita_perempuan_wilayah)
 
-            r_4col1, r_4col2, r_4col3 = st.columns(3)
-            r_4col1.metric("Anak-anak (5 - <10 thn)", jumlah_anak_wilayah)
-            r_4col2.metric("Laki-laki", jumlah_anak_laki_wilayah)
-            r_4col3.metric("Perempuan", jumlah_anak_perempuan_wilayah)
+            # r_4col1, r_4col2, r_4col3 = st.columns(3)
+            # r_4col1.metric("Anak-anak (5 - <10 thn)", jumlah_anak_wilayah)
+            # r_4col2.metric("Laki-laki", jumlah_anak_laki_wilayah)
+            # r_4col3.metric("Perempuan", jumlah_anak_perempuan_wilayah)
 
-            r_5col1, r_5col2, r_5col3 = st.columns(3)
-            r_5col1.metric("Remaja (10 - <20 thn)", jumlah_remaja_wilayah)
-            r_5col2.metric("Laki-laki", jumlah_remaja_laki_wilayah)
-            r_5col3.metric("Perempuan", jumlah_remaja_perempuan_wilayah)
+            # r_5col1, r_5col2, r_5col3 = st.columns(3)
+            # r_5col1.metric("Remaja (10 - <20 thn)", jumlah_remaja_wilayah)
+            # r_5col2.metric("Laki-laki", jumlah_remaja_laki_wilayah)
+            # r_5col3.metric("Perempuan", jumlah_remaja_perempuan_wilayah)
 
-            r_6col1, r_6col2, r_6col3 = st.columns(3)
-            r_6col1.metric("Dewasa (20 - <60 thn)", jumlah_dewasa_wilayah)
-            r_6col2.metric("Laki-laki", jumlah_dewasa_laki_wilayah)
-            r_6col3.metric("Perempuan", jumlah_dewasa_perempuan_wilayah)
+            # r_6col1, r_6col2, r_6col3 = st.columns(3)
+            # r_6col1.metric("Dewasa (20 - <60 thn)", jumlah_dewasa_wilayah)
+            # r_6col2.metric("Laki-laki", jumlah_dewasa_laki_wilayah)
+            # r_6col3.metric("Perempuan", jumlah_dewasa_perempuan_wilayah)
 
-            r_7col1, r_7col2, r_7col3 = st.columns(3)
-            r_7col1.metric("Lansia (20 - <60 thn)", jumlah_lansia_wilayah)
-            r_7col2.metric("Laki-laki", jumlah_lansia_laki_wilayah)
-            r_7col3.metric("Perempuan", jumlah_lansia_perempuan_wilayah)
+            # r_7col1, r_7col2, r_7col3 = st.columns(3)
+            # r_7col1.metric("Lansia (20 - <60 thn)", jumlah_lansia_wilayah)
+            # r_7col2.metric("Laki-laki", jumlah_lansia_laki_wilayah)
+            # r_7col3.metric("Perempuan", jumlah_lansia_perempuan_wilayah)
+
+            #-------------------------------------------------------------------------------------------------------
+            # tampilan berwarna di web
+            # Data demografi yang sudah dihitung sebelumnya
+            baris_demografi = [
+                ("Bayi (0-6 bln)", jumlah_bayi_wilayah, jumlah_bayi_laki_wilayah, jumlah_bayi_perempuan_wilayah),
+                ("Baduta (6 bln - <2 thn)", jumlah_baduta_wilayah, jumlah_baduta_laki_wilayah, jumlah_baduta_perempuan_wilayah),
+                ("Balita (2 - <5 thn)", jumlah_balita_wilayah, jumlah_balita_laki_wilayah, jumlah_balita_perempuan_wilayah),
+                ("Anak-anak (5 - <10 thn)", jumlah_anak_wilayah, jumlah_anak_laki_wilayah, jumlah_anak_perempuan_wilayah),
+                ("Remaja (10 - <20 thn)", jumlah_remaja_wilayah, jumlah_remaja_laki_wilayah, jumlah_remaja_perempuan_wilayah),
+                ("Dewasa (20 - <60 thn)", jumlah_dewasa_wilayah, jumlah_dewasa_laki_wilayah, jumlah_dewasa_perempuan_wilayah),
+                ("Lansia (≥60 thn)", jumlah_lansia_wilayah, jumlah_lansia_laki_wilayah, jumlah_lansia_perempuan_wilayah),
+            ]
+
+            # Warna berbeda untuk tiap baris
+            warna_baris_list = [
+                "#e6f7ff",  # biru muda
+                "#fff0f5",  # pink muda
+                "#f0fff0",  # hijau pucat
+                "#ffffe0",  # kuning pucat
+                "#ffe4e1",  # salmon muda
+                "#f5f5dc",  # beige
+                "#e0ffff",  # cyan muda
+            ]
+
+            # Tampilkan setiap baris demografi
+            for i, (label, total, laki, perempuan) in enumerate(baris_demografi):
+                warna = warna_baris_list[i % len(warna_baris_list)]
+                st.markdown(f"""
+                <div style="background-color:{warna}; padding:12px 16px; border-radius:10px; margin-bottom:8px;">
+                    <strong>{label}</strong><br>
+                    👥 Total: <strong>{total}</strong> &nbsp;&nbsp;&nbsp;
+                    👦 Laki-laki: <strong>{laki}</strong> &nbsp;&nbsp;&nbsp;
+                    👧 Perempuan: <strong>{perempuan}</strong>
+                </div>
+                """, unsafe_allow_html=True)
+            #-------------------------------------------------------------------------------------------------------
 
             st.write("#### Pilih Kategori")
             col_f1, col_f2 = st.columns(2)
