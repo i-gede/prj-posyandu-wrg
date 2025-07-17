@@ -335,7 +335,15 @@ def page_input_pemeriksaan():
 # ==============================================================================
 
 def page_dashboard():
-    st.header("📈 Dashboard & Laporan")
+    # st.header("📈 Dashboard & Laporan")
+    st.markdown(
+        """
+        <div style="background-color:#0A2342; padding:16px; border-radius:10px;">
+            <h2 style="color:white; margin:0;">📈 Dashboard</h2>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     if not supabase: return
 
     try:
