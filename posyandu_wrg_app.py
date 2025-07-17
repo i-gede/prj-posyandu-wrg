@@ -378,27 +378,54 @@ def page_dashboard():
             laki_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L'].shape[0]
             perempuan_wilayah = total_warga_wilayah - laki_wilayah
 
-            # Menghitung jumlah warga dengan usia < 0.5 tahun
+            # Menghitung jumlah warga bayi usia < 0.5 tahun
             bayi_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 0.5]
             jumlah_bayi_wilayah = bayi_wilayah.shape[0]
             # Memisahkan berdasarkan jenis kelamin
             jumlah_bayi_laki_wilayah = bayi_wilayah[bayi_wilayah['jenis_kelamin'] == 'L'].shape[0]
             jumlah_bayi_perempuan_wilayah = bayi_wilayah[bayi_wilayah['jenis_kelamin'] == 'P'].shape[0]
 
-            # Menghitung jumlah warga baduta
-            baduta_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 0.5) & (df_warga_wilayah['usia'] < 2)]
+            # Menghitung jumlah warga baduta usia ? 0.5 tahun dan < 2 tahun
+            baduta_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] > 0.5) & (df_warga_wilayah['usia'] < 2)]
             jumlah_baduta_wilayah = baduta_wilayah.shape[0]
             # Memisahkan berdasarkan jenis kelamin
             jumlah_baduta_laki_wilayah = baduta_wilayah[baduta_wilayah['jenis_kelamin'] == 'L'].shape[0]
             jumlah_baduta_perempuan_wilayah = baduta_wilayah[baduta_wilayah['jenis_kelamin'] == 'P'].shape[0]
 
-            # jumlah_lansia_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] >= 60].shape[0]
-            # laki_lansia_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L']
-            # perempuan_lansia_wilayah = jumlah_lansia_wilayah - laki_lansia_wilayah
+            # Menghitung jumlah warga balita usia ?= 2 tahun dan < 5 tahun
+            balita_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 2) & (df_warga_wilayah['usia'] < 5)]
+            jumlah_balita_wilayah = balita_wilayah.shape[0]
+            # Memisahkan berdasarkan jenis kelamin
+            jumlah_balita_laki_wilayah = balita_wilayah[balita_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_balita_perempuan_wilayah = balita_wilayah[balita_wilayah['jenis_kelamin'] == 'P'].shape[0]
 
-            #jumlah_balita_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 5].shape[0]
-            #jumlah_baduta_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 2].shape[0]
-            #jumlah_bayi_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 0.5].shape[0]
+            # Menghitung jumlah warga anak-anak usia ?= 5 tahun dan < 10 tahun
+            anak_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 5) & (df_warga_wilayah['usia'] < 10)]
+            jumlah_anak_wilayah = anak_wilayah.shape[0]
+            # Memisahkan berdasarkan jenis kelamin
+            jumlah_anak_laki_wilayah = anak_wilayah[anak_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_anak_perempuan_wilayah = anak_wilayah[anak_wilayah['jenis_kelamin'] == 'P'].shape[0]
+
+            # Menghitung jumlah warga remaja usia ?= 10 tahun dan < 20 tahun
+            remaja_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 10) & (df_warga_wilayah['usia'] < 20)]
+            jumlah_remaja_wilayah = remaja_wilayah.shape[0]
+            # Memisahkan berdasarkan jenis kelamin
+            jumlah_remaja_laki_wilayah = remaja_wilayah[remaja_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_remaja_perempuan_wilayah = remaja_wilayah[remaja_wilayah['jenis_kelamin'] == 'P'].shape[0]
+
+            # Menghitung jumlah warga dewasa usia ?= 20 tahun dan < 60 tahun
+            dewasa_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 20) & (df_warga_wilayah['usia'] < 60)]
+            jumlah_dewasa_wilayah = dewasa_wilayah.shape[0]
+            # Memisahkan berdasarkan jenis kelamin
+            jumlah_dewasa_laki_wilayah = dewasa_wilayah[dewasa_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_dewasa_perempuan_wilayah = dewasa_wilayah[dewasa_wilayah['jenis_kelamin'] == 'P'].shape[0]
+
+            # Menghitung jumlah warga lansia usia ?= 60 tahun
+            lansia_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] >= 60]
+            jumlah_lansia_wilayah = lansia_wilayah.shape[0]
+            # Memisahkan berdasarkan jenis kelamin
+            jumlah_lansia_laki_wilayah = lansia_wilayah[lansia_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_lansia_perempuan_wilayah = lansia_wilayah[lansia_wilayah['jenis_kelamin'] == 'P'].shape[0]
             
             st.write("#### Demografi Wilayah")
             col1, col2, col3 = st.columns(3)
@@ -417,29 +444,29 @@ def page_dashboard():
             r_2col3.metric("Perempuan", jumlah_baduta_perempuan_wilayah)
 
             r_3col1, r_3col2, r_3col3 = st.columns(3)
-            r_3col1.metric("Balita (2 - <5 thn)", total_warga_wilayah)
-            r_3col2.metric("Laki-laki", laki_wilayah)
-            r_3col3.metric("Perempuan", perempuan_wilayah)
+            r_3col1.metric("Balita (2 - <5 thn)", jumlah_balita_wilayah)
+            r_3col2.metric("Laki-laki", jumlah_balita_laki_wilayah)
+            r_3col3.metric("Perempuan", jumlah_balita_perempuan_wilayah)
 
             r_4col1, r_4col2, r_4col3 = st.columns(3)
-            r_4col1.metric("Anak-anak (5 - <10 thn)", total_warga_wilayah)
-            r_4col2.metric("Laki-laki", laki_wilayah)
-            r_4col3.metric("Perempuan", perempuan_wilayah)
+            r_4col1.metric("Anak-anak (5 - <10 thn)", jumlah_anak_wilayah)
+            r_4col2.metric("Laki-laki", jumlah_anak_laki_wilayah)
+            r_4col3.metric("Perempuan", jumlah_anak_perempuan_wilayah)
 
             r_5col1, r_5col2, r_5col3 = st.columns(3)
-            r_5col1.metric("Remaja (10 - <20 thn)", total_warga_wilayah)
-            r_5col2.metric("Laki-laki", laki_wilayah)
-            r_5col3.metric("Perempuan", perempuan_wilayah)
+            r_5col1.metric("Remaja (10 - <20 thn)", jumlah_remaja_wilayah)
+            r_5col2.metric("Laki-laki", jumlah_remaja_laki_wilayah)
+            r_5col3.metric("Perempuan", jumlah_remaja_perempuan_wilayah)
 
             r_6col1, r_6col2, r_6col3 = st.columns(3)
-            r_6col1.metric("Dewasa (20 - <60 thn)", total_warga_wilayah)
-            r_6col2.metric("Laki-laki", laki_wilayah)
-            r_6col3.metric("Perempuan", perempuan_wilayah)
+            r_6col1.metric("Dewasa (20 - <60 thn)", jumlah_dewasa_wilayah)
+            r_6col2.metric("Laki-laki", jumlah_dewasa_laki_wilayah)
+            r_6col3.metric("Perempuan", jumlah_dewasa_perempuan_wilayah)
 
-            # r_7col1, r_7col2, r_7col3 = st.columns(3)
-            # r_7col1.metric("Lansia (20 - <60 thn)", jumlah_lansia_wilayah)
-            # r_7col2.metric("Laki-laki", laki_lansia_wilayah)
-            # r_7col3.metric("Perempuan", perempuan_lansia_wilayah)
+            r_7col1, r_7col2, r_7col3 = st.columns(3)
+            r_7col1.metric("Lansia (20 - <60 thn)", jumlah_lansia_wilayah)
+            r_7col2.metric("Laki-laki", jumlah_lansia_laki_wilayah)
+            r_7col3.metric("Perempuan", jumlah_lansia_perempuan_wilayah)
 
             st.write("#### Pilih Kategori")
             col_f1, col_f2 = st.columns(2)
