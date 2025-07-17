@@ -514,12 +514,23 @@ def page_dashboard():
             warna_baris_list = [
                 "#e6f7ff",  # biru muda
                 "#fff0f5",  # pink muda
-                "#f0fff0",  # hijau pucat
-                "#ffffe0",  # kuning pucat
-                "#ffe4e1",  # salmon muda
-                "#f5f5dc",  # beige
-                "#e0ffff",  # cyan muda
+                "#e6f7ff",  # biru muda
+                "#fff0f5",  # pink muda
+                "#e6f7ff",  # biru muda
+                "#fff0f5",  # pink muda
+                "#e6f7ff",  # biru muda
             ]
+
+            # # Warna berbeda untuk tiap baris
+            # warna_baris_list = [
+            #     "#e6f7ff",  # biru muda
+            #     "#fff0f5",  # pink muda
+            #     "#f0fff0",  # hijau pucat
+            #     "#ffffe0",  # kuning pucat
+            #     "#ffe4e1",  # salmon muda
+            #     "#f5f5dc",  # beige
+            #     "#e0ffff",  # cyan muda
+            # ]
 
             # Tampilkan setiap baris demografi
             for i, (label, total, laki, perempuan) in enumerate(baris_demografi):
