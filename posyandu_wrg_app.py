@@ -364,13 +364,14 @@ def page_dashboard():
 
         # # Usia warga berdasarkan per hari tanggal pemeriksaan yang dipilih
         df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
-        df_warga['tanggal_pemeriksaan'] = pd.to_datetime(df_warga['tanggal_pemeriksaan'])
-        df_warga['usia'] = (df_warga['tanggal_pemeriksaan'] - df_warga['tanggal_lahir']).dt.days / 365.25
+        df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.date
+        #df_warga['tanggal_pemeriksaan'] = pd.to_datetime(df_warga['tanggal_pemeriksaan'])
+        df_warga['usia'] = (df_pemeriksaan['tanggal_pemeriksaan'] - df_warga['tanggal_lahir']).dt.days / 365.25
         
         # --- Filter di Halaman Utama ---
         st.subheader("Laporan")
         
-        df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.date
+        #df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.date
         available_dates = sorted(df_pemeriksaan['tanggal_pemeriksaan'].unique(), reverse=True)
         selected_date = st.selectbox(
             "Pilih Tanggal Pelaksanaan Posyandu",
