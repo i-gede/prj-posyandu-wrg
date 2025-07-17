@@ -379,7 +379,7 @@ def page_dashboard():
             perempuan_wilayah = total_warga_wilayah - laki_wilayah
 
             jumlah_lansia_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] >= 60].shape[0]
-            laki_lansia_wilayah = df_warga_wilayah[(df_warga_wilayah['jenis_kelamin'] == 'L') & (df_warga_wilayah[df_warga_wilayah['usia'] >= 60])].shape[0]
+            laki_lansia_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L']
             perempuan_lansia_wilayah = jumlah_lansia_wilayah - laki_lansia_wilayah
 
             #jumlah_balita_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 5].shape[0]
