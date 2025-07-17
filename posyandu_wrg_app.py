@@ -433,10 +433,20 @@ def page_dashboard():
             col2.metric("Laki-laki", laki_wilayah)
             col3.metric("Perempuan", perempuan_wilayah)
 
-            r_1col1, r_1col2, r_1col3 = st.columns(3)
-            r_1col1.metric("Bayi (0-6 bln)", jumlah_bayi_wilayah)
-            r_1col2.metric("Laki-laki", jumlah_bayi_laki_wilayah)
-            r_1col3.metric("Perempuan", jumlah_bayi_perempuan_wilayah)
+            warna_baris = "#e6f7ff"  # biru muda sebagai contoh
+            st.markdown(f"""
+            <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px;">
+                <strong>Bayi (0-6 bln)</strong><br>
+                Total: {jumlah_bayi_wilayah} &nbsp;&nbsp;&nbsp;
+                👦 Laki-laki: {jumlah_bayi_laki_wilayah} &nbsp;&nbsp;&nbsp;
+                👧 Perempuan: {jumlah_bayi_perempuan_wilayah}
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # r_1col1, r_1col2, r_1col3 = st.columns(3)
+            # r_1col1.metric("Bayi (0-6 bln)", jumlah_bayi_wilayah)
+            # r_1col2.metric("Laki-laki", jumlah_bayi_laki_wilayah)
+            # r_1col3.metric("Perempuan", jumlah_bayi_perempuan_wilayah)
 
             r_2col1, r_2col2, r_2col3 = st.columns(3)
             r_2col1.metric("Baduta (6 bln - <2 thn)", jumlah_baduta_wilayah)
@@ -578,12 +588,12 @@ def plot_individual_trends(df_pemeriksaan):
 # BAGIAN UTAMA APLIKASI (MAIN)
 # ==============================================================================
 
-st.set_page_config(page_title="Posyandu Warga", layout="wide")
-st.sidebar.title("🏥 Aplikasi Posyandu Warga")
+st.set_page_config(page_title="Posyandu Mawar", layout="wide")
+st.sidebar.title("🏥 Aplikasi Posyandu Mawar - KBU")
 
 page_options = {
     "👨‍👩‍👧‍👦 Manajemen Data Warga": page_manajemen_warga,
-    "🗓️ Input Kehadiran & Pemeriksaan": page_input_pemeriksaan,
+    "🗓️ Input Kunjungan & Pemeriksaan": page_input_pemeriksaan,
     "📈 Dashboard & Laporan": page_dashboard
 }
 
