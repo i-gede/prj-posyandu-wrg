@@ -505,8 +505,7 @@ def page_dashboard():
             # Tampilkan setiap baris demografi
             for i, (label, total, laki, perempuan) in enumerate(baris_demografi):
                 warna = warna_baris_list[i % len(warna_baris_list)]
-                st.markdown(f"<div style='font-size:20px; font-weight:bold; margin-top:20px;'>{label} (Total: {total})</div>", unsafe_allow_html=True)
-                with st.expander("Lihat rincian", expanded=False):
+                with st.expander(f"**{label} (Total: {total})**", expanded=False):
                     st.markdown(f"""
                     <div style="background-color:{warna}; padding:12px 16px; border-radius:10px; margin-bottom:8px; font-size: 16px; font-family: sans-serif;">
                         <strong>{label}</strong><br>
