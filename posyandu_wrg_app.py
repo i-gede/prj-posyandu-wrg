@@ -433,15 +433,26 @@ def page_dashboard():
             # col2.metric("👦 Laki-laki", laki_wilayah)
             # col3.metric("👧 Perempuan", perempuan_wilayah)
 
+            
             warna_baris = "#0A2342"  # Dark Metallic Blue
-            st.markdown(f"""
-            <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; color: white; font-size: 36px;">
-                <strong>Total Warga</strong><br>
-                Total: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
-                👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
-                👧 Perempuan: {perempuan_wilayah}
-            </div>
-            """, unsafe_allow_html=True)
+            if selected_wilayah != "Lingkungan (Semua RT)":
+                st.markdown(f"""
+                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; color: white; font-size: 36px;">
+                    <strong>Lingkungan Karang Baru Utara</strong><br>
+                    Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
+                    👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
+                    👧 Perempuan: {perempuan_wilayah}
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; color: white; font-size: 36px;">
+                    <strong>Lingkungan Karang Baru Utara - RT003</strong><br>
+                    Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
+                    👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
+                    👧 Perempuan: {perempuan_wilayah}
+                </div>
+                """, unsafe_allow_html=True)
             
             # r_1col1, r_1col2, r_1col3 = st.columns(3)
             # r_1col1.metric("Bayi (0-6 bln)", jumlah_bayi_wilayah)
