@@ -442,10 +442,10 @@ def page_dashboard():
             # col3.metric("👧 Perempuan", perempuan_wilayah)
 
             
-            warna_baris = "#0A2342"  # Dark Metallic Blue
+            warna_baris = "#4682B4"  # Steel Blue (lebih terang) #0A2342 Dark Metallic Blue
             if selected_wilayah == "Lingkungan (Semua RT)":
                 st.markdown(f"""
-                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; color: white; font-size: 36px;">
+                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 32px;">
                     <strong>Lingkungan Karang Baru Utara</strong><br>
                     Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
                     👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
@@ -454,7 +454,7 @@ def page_dashboard():
                 """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
-                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; color: white; font-size: 36px;">
+                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 32px;">
                     <strong>Lingkungan Karang Baru Utara - RT003</strong><br>
                     Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
                     👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
