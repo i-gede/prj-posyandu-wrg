@@ -378,9 +378,9 @@ def page_dashboard():
             laki_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L'].shape[0]
             perempuan_wilayah = total_warga_wilayah - laki_wilayah
 
-            jumlah_lansia_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] >= 60].shape[0]
-            laki_lansia_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L']
-            perempuan_lansia_wilayah = jumlah_lansia_wilayah - laki_lansia_wilayah
+            # jumlah_lansia_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] >= 60].shape[0]
+            # laki_lansia_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L']
+            # perempuan_lansia_wilayah = jumlah_lansia_wilayah - laki_lansia_wilayah
 
             #jumlah_balita_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 5].shape[0]
             #jumlah_baduta_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 2].shape[0]
@@ -422,10 +422,10 @@ def page_dashboard():
             r_6col2.metric("Laki-laki", laki_wilayah)
             r_6col3.metric("Perempuan", perempuan_wilayah)
 
-            r_7col1, r_7col2, r_7col3 = st.columns(3)
-            r_7col1.metric("Lansia (20 - <60 thn)", jumlah_lansia_wilayah)
-            r_7col2.metric("Laki-laki", laki_lansia_wilayah)
-            r_7col3.metric("Perempuan", perempuan_lansia_wilayah)
+            # r_7col1, r_7col2, r_7col3 = st.columns(3)
+            # r_7col1.metric("Lansia (20 - <60 thn)", jumlah_lansia_wilayah)
+            # r_7col2.metric("Laki-laki", laki_lansia_wilayah)
+            # r_7col3.metric("Perempuan", perempuan_lansia_wilayah)
 
             st.write("#### Pilih Kategori")
             col_f1, col_f2 = st.columns(2)
