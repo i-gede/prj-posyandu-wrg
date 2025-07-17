@@ -377,6 +377,14 @@ def page_dashboard():
             total_warga_wilayah = len(df_warga_wilayah)
             laki_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L'].shape[0]
             perempuan_wilayah = total_warga_wilayah - laki_wilayah
+
+            jumlah_lansia_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] >= 60].shape[0]
+            laki_lansia_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L' & df_warga_wilayah[df_warga_wilayah['usia'] >= 60]].shape[0]
+            perempuan_lansia_wilayah = jumlah_lansia_wilayah - laki_lansia_wilayah
+
+            #jumlah_balita_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 5].shape[0]
+            #jumlah_baduta_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 2].shape[0]
+            #jumlah_bayi_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 0.5].shape[0]
             
             st.write("#### Demografi Wilayah")
             col1, col2, col3 = st.columns(3)
@@ -385,9 +393,39 @@ def page_dashboard():
             col3.metric("Perempuan", perempuan_wilayah)
 
             r_1col1, r_1col2, r_1col3 = st.columns(3)
-            r_1col1.metric("Bayi", total_warga_wilayah)
-            r_1col2.metric("Baduta", laki_wilayah)
-            r_1col3.metric("Balita", perempuan_wilayah)
+            r_1col1.metric("Bayi (0-6 bln)", total_warga_wilayah)
+            r_1col2.metric("Laki-laki", laki_wilayah)
+            r_1col3.metric("Perempuan", perempuan_wilayah)
+
+            r_2col1, r_2col2, r_2col3 = st.columns(3)
+            r_2col1.metric("Baduta (6 bln - <2 thn)", total_warga_wilayah)
+            r_2col2.metric("Laki-laki", laki_wilayah)
+            r_2col3.metric("Perempuan", perempuan_wilayah)
+
+            r_3col1, r_3col2, r_3col3 = st.columns(3)
+            r_3col1.metric("Balita (2 - <5 thn)", total_warga_wilayah)
+            r_3col2.metric("Laki-laki", laki_wilayah)
+            r_3col3.metric("Perempuan", perempuan_wilayah)
+
+            r_4col1, r_4col2, r_4col3 = st.columns(3)
+            r_4col1.metric("Anak-anak (5 - <10 thn)", total_warga_wilayah)
+            r_4col2.metric("Laki-laki", laki_wilayah)
+            r_4col3.metric("Perempuan", perempuan_wilayah)
+
+            r_5col1, r_5col2, r_5col3 = st.columns(3)
+            r_5col1.metric("Remaja (10 - <20 thn)", total_warga_wilayah)
+            r_5col2.metric("Laki-laki", laki_wilayah)
+            r_5col3.metric("Perempuan", perempuan_wilayah)
+
+            r_6col1, r_6col2, r_6col3 = st.columns(3)
+            r_6col1.metric("Dewasa (20 - <60 thn)", total_warga_wilayah)
+            r_6col2.metric("Laki-laki", laki_wilayah)
+            r_6col3.metric("Perempuan", perempuan_wilayah)
+
+            r_7col1, r_7col2, r_7col3 = st.columns(3)
+            r_7col1.metric("Lansia (20 - <60 thn)", jumlah_lansia_wilayah)
+            r_7col2.metric("Laki-laki", laki_lansia_wilayah)
+            r_7col3.metric("Perempuan", perempuan_lansia_wilayah)
 
             st.write("#### Pilih Kategori")
             col_f1, col_f2 = st.columns(2)
