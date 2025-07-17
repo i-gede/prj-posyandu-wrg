@@ -435,7 +435,7 @@ def page_dashboard():
 
             
             warna_baris = "#0A2342"  # Dark Metallic Blue
-            if selected_wilayah != "Lingkungan (Semua RT)":
+            if selected_wilayah = "Lingkungan (Semua RT)":
                 st.markdown(f"""
                 <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; color: white; font-size: 36px;">
                     <strong>Lingkungan Karang Baru Utara</strong><br>
