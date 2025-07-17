@@ -435,7 +435,7 @@ def page_dashboard():
 
             warna_baris = "#e6f7ff"  # biru muda sebagai contoh
             st.markdown(f"""
-            <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px;">
+            <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 36px;">
                 <strong>Total Warga</strong><br>
                 Total: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
                 👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
