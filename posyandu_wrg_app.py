@@ -363,9 +363,9 @@ def page_dashboard():
         #df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
         
         # Ini cobain
-        df_warga['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan'])
+        df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan'])
         # Hitung usia saat pemeriksaan
-        df_warga['usia'] = (df_warga['tanggal_pemeriksaan'] - df_warga['tanggal_lahir']).dt.days / 365.25
+        df_warga['usia'] = (df_pemeriksaan['tanggal_pemeriksaan'] - df_warga['tanggal_lahir']).dt.days / 365.25
         
 
         # --- Filter di Halaman Utama ---
