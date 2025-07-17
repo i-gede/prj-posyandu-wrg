@@ -428,20 +428,20 @@ def page_dashboard():
             jumlah_lansia_perempuan_wilayah = lansia_wilayah[lansia_wilayah['jenis_kelamin'] == 'P'].shape[0]
             
             st.write("#### Demografi Wilayah")
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Total Warga", total_warga_wilayah)
-            col2.metric("Laki-laki", laki_wilayah)
-            col3.metric("Perempuan", perempuan_wilayah)
+            # col1, col2, col3 = st.columns(3)
+            # col1.metric("Total Warga", total_warga_wilayah)
+            # col2.metric("👦 Laki-laki", laki_wilayah)
+            # col3.metric("👧 Perempuan", perempuan_wilayah)
 
-            # warna_baris = "#e6f7ff"  # biru muda sebagai contoh
-            # st.markdown(f"""
-            # <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px;">
-            #     <strong>Bayi (0-6 bln)</strong><br>
-            #     Total: {jumlah_bayi_wilayah} &nbsp;&nbsp;&nbsp;
-            #     👦 Laki-laki: {jumlah_bayi_laki_wilayah} &nbsp;&nbsp;&nbsp;
-            #     👧 Perempuan: {jumlah_bayi_perempuan_wilayah}
-            # </div>
-            # """, unsafe_allow_html=True)
+            warna_baris = "#e6f7ff"  # biru muda sebagai contoh
+            st.markdown(f"""
+            <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px;">
+                <strong>Total Warga</strong><br>
+                Total: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
+                👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
+                👧 Perempuan: {perempuan_wilayah}
+            </div>
+            """, unsafe_allow_html=True)
             
             # r_1col1, r_1col2, r_1col3 = st.columns(3)
             # r_1col1.metric("Bayi (0-6 bln)", jumlah_bayi_wilayah)
