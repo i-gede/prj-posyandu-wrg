@@ -378,6 +378,20 @@ def page_dashboard():
             laki_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L'].shape[0]
             perempuan_wilayah = total_warga_wilayah - laki_wilayah
 
+            # Menghitung jumlah warga dengan usia < 0.5 tahun
+            bayi_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 0.5]
+            jumlah_bayi_wilayah = bayi_wilayah.shape[0]
+            # Memisahkan berdasarkan jenis kelamin
+            jumlah_bayi_laki_wilayah = bayi_wilayah[bayi_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_bayi_perempuan_wilayah = bayi_wilayah[bayi_wilayah['jenis_kelamin'] == 'P'].shape[0]
+
+            # Menghitung jumlah warga baduta
+            baduta_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 0.5) & (df_warga_wilayah['usia'] < 2)]
+            jumlah_baduta_wilayah = baduta_wilayah.shape[0]
+            # Memisahkan berdasarkan jenis kelamin
+            jumlah_baduta_laki_wilayah = baduta_wilayah[baduta_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_baduta_perempuan_wilayah = baduta_wilayah[baduta_wilayah['jenis_kelamin'] == 'P'].shape[0]
+
             # jumlah_lansia_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] >= 60].shape[0]
             # laki_lansia_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L']
             # perempuan_lansia_wilayah = jumlah_lansia_wilayah - laki_lansia_wilayah
@@ -393,14 +407,14 @@ def page_dashboard():
             col3.metric("Perempuan", perempuan_wilayah)
 
             r_1col1, r_1col2, r_1col3 = st.columns(3)
-            r_1col1.metric("Bayi (0-6 bln)", total_warga_wilayah)
-            r_1col2.metric("Laki-laki", laki_wilayah)
-            r_1col3.metric("Perempuan", perempuan_wilayah)
+            r_1col1.metric("Bayi (0-6 bln)", jumlah_bayi_wilayah)
+            r_1col2.metric("Laki-laki", jumlah_bayi_laki_wilayah)
+            r_1col3.metric("Perempuan", jumlah_bayi_perempuan_wilayah)
 
             r_2col1, r_2col2, r_2col3 = st.columns(3)
-            r_2col1.metric("Baduta (6 bln - <2 thn)", total_warga_wilayah)
-            r_2col2.metric("Laki-laki", laki_wilayah)
-            r_2col3.metric("Perempuan", perempuan_wilayah)
+            r_2col1.metric("Baduta (6 bln - <2 thn)", jumlah_baduta_wilayah)
+            r_2col2.metric("Laki-laki", jumlah_baduta_laki_wilayah)
+            r_2col3.metric("Perempuan", jumlah_baduta_perempuan_wilayah)
 
             r_3col1, r_3col2, r_3col3 = st.columns(3)
             r_3col1.metric("Balita (2 - <5 thn)", total_warga_wilayah)
