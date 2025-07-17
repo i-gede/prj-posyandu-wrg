@@ -433,9 +433,9 @@ def page_dashboard():
             # col2.metric("👦 Laki-laki", laki_wilayah)
             # col3.metric("👧 Perempuan", perempuan_wilayah)
 
-            warna_baris = "#e6f7ff"  # biru muda sebagai contoh
+            warna_baris = "#0A2342"  # Dark Metallic Blue
             st.markdown(f"""
-            <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 36px;">
+            <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; color: white; font-size: 36px;">
                 <strong>Total Warga</strong><br>
                 Total: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
                 👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
