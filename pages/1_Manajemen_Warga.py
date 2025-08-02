@@ -14,17 +14,16 @@ if not st.session_state.get("authenticated", False):
     st.error("🔒 Anda harus login untuk mengakses halaman ini.")
     st.stop()
 
-@st.cache_resource
-def init_connection():
-    try:
-        url = st.secrets["SUPABASE_URL"]
-        key = st.secrets["SUPABASE_KEY"]
-        return create_client(url, key)
-    except Exception as e:
-        st.error(f"Gagal terhubung ke Supabase: {e}")
-        return None
+# --- KONEKSI & KEAMANAN ---
+if not st.session_state.get("authenticated", False):
+    st.error("🔒 Anda harus login untuk mengakses halaman ini.")
+    st.stop()
 
-supabase = init_connection()
+# Ambil koneksi super-admin dari session state yang sudah dibuat saat login
+supabase = st.session_state.get('supabase_client')
+if not supabase:
+    st.error("Koneksi Supabase tidak ditemukan. Silakan login kembali.")
+    st.stop()
 
 # --- FUNGSI-FUNGSI PEMBANTU ---
 def plot_individual_trends(df_pemeriksaan):
