@@ -121,6 +121,8 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
 
 # GANTI SELURUH FUNGSI page_dashboard ANDA DENGAN INI
 
+# GANTI SELURUH FUNGSI page_dashboard ANDA DENGAN INI
+
 def page_dashboard():
     st.markdown(
         """
@@ -183,45 +185,83 @@ def page_dashboard():
                 df_warga_wilayah = df_warga[df_warga['rt'] == selected_wilayah]
             
             # --- Bagian Demografi Wilayah (TETAP SAMA) ---
-            # ... (Kode demografi wilayah tidak diubah)
+            # ... (Kode demografi tidak perlu diubah) ...
             
             st.divider()
 
-            # --- Persiapan Data & Pie Chart ---
+            # --- [ AWAL PERUBAHAN UTAMA: DIAGRAM TINGKAT PARTISIPASI ] ---
+            
+            st.subheader("Tingkat Partisipasi per Kategori Usia")
+
             df_pemeriksaan_harian = df_pemeriksaan[df_pemeriksaan['tanggal_pemeriksaan'] == selected_date]
             df_merged = pd.merge(df_pemeriksaan_harian, df_warga_wilayah, left_on='warga_id', right_on='id', how='inner')
             
             if selected_gender != "Semua":
                 gender_code = "L" if selected_gender == "Laki-laki" else "P"
-                df_merged = df_merged[df_merged['jenis_kelamin'] == gender_code]
-
-            st.subheader("Ringkasan Kehadiran per Kategori Usia")
-
-            if not df_merged.empty:
-                kategori_usia_defs = {
-                    "Bayi (0-6 bln)": (0, 0.5), "Baduta (>6 bln - 2 thn)": (0.5, 2), "Balita (>2 - 5 thn)": (2, 5),
-                    "Anak Pra-Sekolah (>5 - <6 thn)": (5, 6), "Anak Usia Sekolah dan Remaja (6 - 18 thn)": (6, 18),
-                    "Dewasa (>18 - <60 thn)": (18, 60), "Lansia (≥60 thn)": (60, 200)
-                }
-                
-                def get_kategori(usia):
-                    if usia <= 0.5: return "Bayi (0-6 bln)"
-                    if usia <= 2: return "Baduta (>6 bln - 2 thn)"
-                    if usia <= 5: return "Balita (>2 - 5 thn)"
-                    if usia < 6: return "Anak Pra-Sekolah (>5 - <6 thn)"
-                    if usia <= 18: return "Anak Usia Sekolah dan Remaja (6 - 18 thn)"
-                    if usia < 60: return "Dewasa (>18 - <60 thn)"
-                    return "Lansia (≥60 thn)"
-
-                df_merged['kategori_usia'] = df_merged['usia'].apply(get_kategori)
-                kehadiran_counts = df_merged['kategori_usia'].value_counts()
-
-                fig_pie, ax_pie = plt.subplots(figsize=(6, 4))
-                ax_pie.pie(kehadiran_counts, labels=kehadiran_counts.index, autopct='%1.1f%%', startangle=90)
-                ax_pie.axis('equal')
-                st.pyplot(fig_pie)
+                df_warga_wilayah_gender = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == gender_code]
+                df_merged_gender = df_merged[df_merged['jenis_kelamin'] == gender_code]
             else:
-                st.info("Tidak ada data kehadiran untuk ditampilkan dalam ringkasan.")
+                df_warga_wilayah_gender = df_warga_wilayah
+                df_merged_gender = df_merged
+
+            kategori_usia_defs = {
+                "Bayi (0-6 bln)": (0, 0.5), "Baduta (>6 bln - 2 thn)": (0.5, 2), "Balita (>2 - 5 thn)": (2, 5),
+                "Anak Pra-Sekolah (>5 - <6 thn)": (5, 6), "Anak Usia Sekolah dan Remaja (6 - 18 thn)": (6, 18),
+                "Dewasa (>18 - <60 thn)": (18, 60), "Lansia (≥60 thn)": (60, 200)
+            }
+            
+            # Fungsi untuk menentukan kategori usia, digunakan di banyak tempat
+            def get_kategori(usia):
+                if usia <= 0.5: return "Bayi (0-6 bln)"
+                if usia <= 2: return "Baduta (>6 bln - 2 thn)"
+                if usia <= 5: return "Balita (>2 - 5 thn)"
+                if usia < 6: return "Anak Pra-Sekolah (>5 - <6 thn)"
+                if usia <= 18: return "Anak Usia Sekolah dan Remaja (6 - 18 thn)"
+                if usia < 60: return "Dewasa (>18 - <60 thn)"
+                return "Lansia (≥60 thn)"
+            
+            # Buat kolom untuk menata diagram
+            cols = st.columns(4)
+            col_idx = 0
+
+            for nama_kategori, (usia_min, usia_max) in kategori_usia_defs.items():
+                
+                # 1. Hitung TOTAL warga di kategori ini
+                warga_kategori = df_warga_wilayah_gender[df_warga_wilayah_gender['usia'].apply(lambda x: usia_min < x <= usia_max if nama_kategori not in ["Bayi (0-6 bln)"] else x <= usia_max)]
+                total_warga_kategori = len(warga_kategori)
+                
+                if total_warga_kategori > 0:
+                    # 2. Hitung yang HADIR di kategori ini
+                    hadir_kategori = df_merged_gender[df_merged_gender['usia'].apply(lambda x: usia_min < x <= usia_max if nama_kategori not in ["Bayi (0-6 bln)"] else x <= usia_max)]
+                    jumlah_hadir = len(hadir_kategori)
+                    jumlah_tidak_hadir = total_warga_kategori - jumlah_hadir
+                    
+                    # 3. Hitung persentase partisipasi
+                    partisipasi = (jumlah_hadir / total_warga_kategori * 100) if total_warga_kategori > 0 else 0
+                    
+                    # 4. Buat Donut Chart
+                    with cols[col_idx]:
+                        fig, ax = plt.subplots(figsize=(3, 3))
+                        ax.pie(
+                            [jumlah_hadir, jumlah_tidak_hadir], 
+                            labels=['Hadir', 'Tidak Hadir'], 
+                            autopct=lambda p: '{:.0f}'.format(p * (jumlah_hadir+jumlah_tidak_hadir) / 100), # Menampilkan jumlah absolut
+                            startangle=90, 
+                            colors=['#4CAF50', '#FFC107'],
+                            wedgeprops=dict(width=0.4)
+                        )
+                        # Tambahkan teks persentase di tengah
+                        ax.text(0, 0, f"{partisipasi:.1f}%", ha='center', va='center', fontsize=20, fontweight='bold')
+                        ax.set_title(nama_kategori, fontsize=10)
+                        st.pyplot(fig)
+                    
+                    col_idx = (col_idx + 1) % 4
+            
+            # Tambahkan kolom kategori usia ke dataframe gabungan untuk filtering di bawah
+            if not df_merged.empty:
+                df_merged['kategori_usia'] = df_merged['usia'].apply(get_kategori)
+
+            # --- [ AKHIR PERUBAHAN UTAMA ] ---
             
             st.divider()
 
