@@ -242,7 +242,7 @@ def page_dashboard():
                     st.markdown(f"""
                     <div style="background-color:#F0F2F6; padding:14px 18px; border-radius:10px; height: 95%; display: flex; flex-direction: row; justify-content: center;">
                         <strong>{label}</strong><br>
-                        👥 Total: <strong>{total}</strong> &nbsp;&nbsp;
+                        👥 Total: <strong>{total}</strong>;
                         👦 Laki-laki: <strong>{laki}</strong> &nbsp;&nbsp;
                         👧 Perempuan: <strong>{perempuan}</strong>
                     </div>
