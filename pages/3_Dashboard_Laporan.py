@@ -235,29 +235,33 @@ def page_dashboard():
             ]
 
             # Tampilkan setiap baris demografi dengan grafik
+            # GANTI SELURUH BLOK 'for' ANDA DENGAN YANG INI
+
+            # Tampilkan setiap baris demografi dengan layout kolom dan container
             for label, total, laki, perempuan in baris_demografi:
                 
                 # Buat dua kolom: satu untuk teks, satu untuk grafik
-                col_teks, col_grafik = st.columns([2, 1]) 
+                col_teks, col_grafik = st.columns([2, 1.5])
 
+                # Gunakan kolom kiri untuk menampilkan semua teks
                 with col_teks:
-                    # --- PERBAIKAN DI SINI ---
-                    # Tag <br> dipindahkan ke akhir setiap baris, setelah angka.
-                    st.markdown(f"""
-                    <div style="background-color:#F0F2F6; padding:14px 18px; border-radius:10px; height: 95%; display: flex; flex-direction: column; justify-content: center;">
-                        <strong>{label}</strong><br>
-                        👥 Total: <strong>{total}</strong><br>
-                        👦 Laki-laki: <strong>{laki}</strong><br>
-                        👧 Perempuan: <strong>{perempuan}</strong>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    # Gunakan container bawaan Streamlit untuk membuat kotak
+                    with st.container(border=True):
+                        st.markdown(f"**{label}**") # Judul kategori
+                        st.markdown(f"👥 Total: **{total}**")
+                        st.markdown(f"👦 Laki-laki: **{laki}**")
+                        st.markdown(f"👧 Perempuan: **{perempuan}**")
 
+                # Gunakan kolom kanan untuk menampilkan grafik
                 with col_grafik:
-                    # Kode untuk membuat grafik tidak perlu diubah
-                    fig_gender = buat_grafik_gender(laki, perempuan) # Pastikan Anda menggunakan fungsi grafik yang sesuai
+                    # Panggil fungsi grafik Anda
+                    fig_gender = buat_grafik_gender(laki, perempuan) # Pastikan nama fungsi ini benar
                     if fig_gender:
                         st.pyplot(fig_gender, use_container_width=True)
                         plt.close(fig_gender)
+
+                # Beri sedikit spasi antar kategori
+                st.write("")
             #------------------- [ AKHIR PERUBAHAN UTAMA ] -------------------
 
             st.divider()
