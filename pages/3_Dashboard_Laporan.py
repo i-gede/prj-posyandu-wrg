@@ -231,20 +231,28 @@ def page_dashboard():
             if selected_wilayah == "Lingkungan (Semua RT)":
                  rt_label = "Lingkungan Karang Baru Utara"
 
-            st.markdown(f"""
-                <div style="background-color:{warna_baris}; color:white; padding:10px; border-radius:8px; margin-bottom:10px; font-size: 24px;">
-                    <strong>{rt_label}</strong><br>
-                    <span style="font-size: 18px;">
-                        Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
-                        👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
-                        👧 Perempuan: {perempuan_wilayah}
-                    </span>
-                </div>
-            """, unsafe_allow_html=True)
+            # --- LAYOUT DUA KOLOM ---
+            kolom_kiri, kolom_kanan = st.columns([2, 1])  # 2:1 rasio lebar
 
-            fig = buat_grafik_gender(laki_wilayah, perempuan_wilayah)
-            if fig is not None:
-                st.pyplot(fig)
+            # --- TEKS DI KOLOM KIRI ---
+            with kolom_kiri:
+                st.markdown(f"""
+                    <div style="background-color:{warna_baris}; color:white; padding:10px; border-radius:8px; margin-bottom:10px; font-size: 24px;">
+                        <strong>{rt_label}</strong><br>
+                        <span style="font-size: 18px;">
+                            Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
+                            👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
+                            👧 Perempuan: {perempuan_wilayah}
+                        </span>
+                    </div>
+                """, unsafe_allow_html=True)
+
+            # --- GRAFIK DI KOLOM KANAN ---
+            with kolom_kanan:
+                fig = buat_grafik_gender(laki_wilayah, perempuan_wilayah)
+                if fig is not None:
+                    st.pyplot(fig)
+
             #------------------- [ AWAL PERUBAHAN UTAMA ] -------------------
             baris_demografi = [
                 ("Bayi (0-6 bln)", jumlah_bayi_wilayah, jumlah_bayi_laki_wilayah, jumlah_bayi_perempuan_wilayah),
