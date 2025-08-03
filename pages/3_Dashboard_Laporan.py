@@ -232,7 +232,7 @@ def page_dashboard():
                  rt_label = "Lingkungan Karang Baru Utara"
 
             # --- LAYOUT DUA KOLOM ---
-            kolom_kiri, kolom_kanan = st.columns([2, 1])  # 2:1 rasio lebar
+            kolom_kiri, kolom_kanan = st.columns([3, 2])  # 2:1 rasio lebar
 
             # --- TEKS DI KOLOM KIRI ---
             with kolom_kiri:
