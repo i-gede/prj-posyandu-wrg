@@ -24,25 +24,44 @@ def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#
     kategori = list(data.keys())
     jumlah = list(data.values())
     
-    # Membuat bar chart horizontal
-    ax.barh(kategori, jumlah, color=[warna_laki, warna_perempuan], height=0.6)
+    # # Membuat bar chart horizontal (barh)
+    # ax.barh(kategori, jumlah, color=[warna_laki, warna_perempuan], height=0.6)
     
-    # Menghilangkan aksis dan frame yang tidak perlu
+    # # Menghilangkan aksis dan frame yang tidak perlu
+    # ax.spines['top'].set_visible(False)
+    # ax.spines['right'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.xaxis.set_ticks([]) # Sembunyikan angka di sumbu x
+    # ax.yaxis.set_ticks([]) # Sembunyikan label di sumbu y
+    
+    # # Menambahkan label angka di dalam bar
+    # for index, value in enumerate(jumlah):
+    #     if value > 0:
+    #         ax.text(value / 2, index, str(value), ha='center', va='center', color='white', fontweight='bold')
+            
+    # fig.tight_layout(pad=0)
+    # return fig
+
+    # --- PERUBAHAN UTAMA: Gunakan ax.bar() untuk grafik vertikal ---
+    ax.bar(kategori, jumlah, color=[warna_laki, warna_perempuan], width=0.6)
+    
+    # Menghilangkan frame dan sumbu Y
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
-    ax.xaxis.set_ticks([]) # Sembunyikan angka di sumbu x
-    ax.yaxis.set_ticks([]) # Sembunyikan label di sumbu y
-    
-    # Menambahkan label angka di dalam bar
-    for index, value in enumerate(jumlah):
+    ax.yaxis.set_ticks([]) # Sembunyikan angka di sumbu y
+
+    # Menyesuaikan posisi teks agar berada di dalam bar vertikal
+    for i, value in enumerate(jumlah):
         if value > 0:
-            ax.text(value / 2, index, str(value), ha='center', va='center', color='white', fontweight='bold')
-            
+            ax.text(i, value / 2, str(value), ha='center', va='center', color='white', fontweight='bold')
+    
+    # Atur agar tidak ada margin ekstra
     fig.tight_layout(pad=0)
     return fig
-
+    # --- 
+    
 # --- KONEKSI & KEAMANAN ---
 st.set_page_config(page_title="Dashboard & Laporan", page_icon="📈", layout="wide")
 
