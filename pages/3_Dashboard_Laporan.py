@@ -284,11 +284,12 @@ def page_dashboard():
 
                 # Gunakan kolom kanan untuk menampilkan grafik
                 with col_grafik:
-                    # Panggil fungsi grafik Anda
-                    fig_gender = buat_grafik_gender(laki, perempuan) # Pastikan nama fungsi ini benar
-                    if fig_gender:
-                        st.pyplot(fig_gender, use_container_width=True)
-                        plt.close(fig_gender)
+                    with st.container(border=True):
+                        # Panggil fungsi grafik Anda
+                        fig_gender = buat_grafik_gender(laki, perempuan) # Pastikan nama fungsi ini benar
+                        if fig_gender:
+                            st.pyplot(fig_gender, use_container_width=True)
+                            plt.close(fig_gender)
 
                 # Beri sedikit spasi antar kategori
                 st.write("")
