@@ -242,6 +242,9 @@ def page_dashboard():
                 </div>
             """, unsafe_allow_html=True)
 
+            fig = buat_grafik_gender(laki_wilayah, perempuan_wilayah)
+            if fig is not None:
+                st.pyplot(fig)
             #------------------- [ AWAL PERUBAHAN UTAMA ] -------------------
             baris_demografi = [
                 ("Bayi (0-6 bln)", jumlah_bayi_wilayah, jumlah_bayi_laki_wilayah, jumlah_bayi_perempuan_wilayah),
