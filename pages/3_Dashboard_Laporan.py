@@ -56,6 +56,45 @@ if not supabase:
     st.error("Koneksi Supabase tidak ditemukan. Silakan login kembali.")
     st.stop()
 
+
+# --- Fungsi Hitung Usia dan Kategori ---
+def hitung_usia_desimal(tanggal_lahir, tanggal_acuan):
+    if pd.isnull(tanggal_lahir):
+        return None
+    delta = tanggal_acuan - tanggal_lahir.date()
+    return round(delta.days / 365.25, 2)
+
+def kategori_usia(usia):
+    if usia is None:
+        return "Tidak Diketahui"
+    elif usia <= 0.5:
+        return "Bayi (0-6 bln)"
+    elif usia <= 2:
+        return "Baduta (>6 bln - 2 thn)"
+    elif usia <= 5:
+        return "Balita (>2 - 5 thn)"
+    elif usia < 6:
+        return "Anak Pra-Sekolah (>5 - <6 thn)"
+    elif usia <= 18:
+        return "Anak Usia Sekolah dan Remaja (6 - 18 thn)"
+    elif usia < 60:
+        return "Dewasa (>18 - <60 thn)"
+    else:
+        return "Lansia (60+ thn)"
+
+urutan_kategori_usia = [
+    "Bayi (0-6 bln)",
+    "Baduta (>6 bln - 2 thn)",
+    "Balita (>2 - 5 thn)",
+    "Anak Pra-Sekolah (>5 - <6 thn)",
+    "Anak Usia Sekolah dan Remaja (6 - 18 thn)",
+    "Dewasa (>18 - <60 thn)",
+    "Lansia (60+ thn)",
+    "Tidak Diketahui"
+]
+
+
+
 # --- FUNGSI PEMBANTU PDF ---
 def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
     """Membuat laporan PDF dari data yang sudah difilter."""
@@ -343,12 +382,43 @@ def page_dashboard():
 
                 st.write("#### Data Rinci Kunjungan")
                 df_laporan_harian = pd.merge(df_pemeriksaan_harian, df_warga, left_on='warga_id', right_on='id', how='left')
+                df_laporan_harian['tanggal_lahir'] = pd.to_datetime(df_laporan_harian['tanggal_lahir'], errors='coerce')
+                df_laporan_harian['usia'] = df_laporan_harian['tanggal_lahir'].apply(lambda x: hitung_usia_desimal(x, selected_date))
+                df_laporan_harian['kategori_usia'] = df_laporan_harian['usia'].apply(kategori_usia)
+                df_laporan_harian['kategori_usia'] = pd.Categorical(df_laporan_harian['kategori_usia'], categories=urutan_kategori_usia, ordered=True)
+                df_laporan_harian = df_laporan_harian.sort_values('kategori_usia')
+
                 st.dataframe(df_laporan_harian[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']])
             else:
                 st.info("Tidak ada data kehadiran yang cocok dengan filter yang dipilih.")
                 df_laporan_harian = pd.DataFrame()
 
             st.divider()
+
+            st.subheader("Ekspor PDF per Kategori Usia")
+
+            for kategori in urutan_kategori_usia:
+                subset = df_laporan_harian[df_laporan_harian['kategori_usia'] == kategori]
+                if not subset.empty:
+                    st.markdown(f"##### 📄 {kategori}")
+                    
+                    pdf_buffer = generate_pdf_report(
+                        filters={
+                            "selected_date_str": selected_date.strftime('%d %B %Y'),
+                            "rt": selected_wilayah,
+                            "kategori": kategori,
+                            "gender": selected_gender
+                        },
+                        metrics={
+                            "total_warga": len(subset),
+                            "hadir_hari_ini": len(subset),
+                            "partisipasi_hari_ini": round((len(subset) / total_warga_terfilter) * 100, 1) if total_warga_terfilter else 0
+                        },
+                        df_rinci=subset[['nama_lengkap', 'usia', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg']],
+                        fig_tren=fig_tren,
+                        fig_pie=fig_pie
+                    )
+
             st.subheader("Tren Kunjungan")
             df_pemeriksaan_tren = df_pemeriksaan[df_pemeriksaan['warga_id'].isin(df_warga_final_filter['id'])]
             if not df_pemeriksaan_tren.empty:
