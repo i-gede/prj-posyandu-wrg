@@ -14,7 +14,7 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
 # --- FUNGSI PEMBUAT GRAFIK ---
-def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#FFB6C1'):
+def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#FFB6C1', figsize=(3, 2)):
     """Membuat dan mengembalikan objek figure Matplotlib untuk grafik gender."""
     if laki == 0 and perempuan == 0:
         return None # Tidak perlu membuat grafik jika tidak ada data
