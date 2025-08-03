@@ -13,58 +13,9 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
-# --- FUNGSI PEMBUAT GRAFIK ---
-def buat_grafik_gender_wil(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#FFB6C1', figsize=(3, 2)):
-    """Membuat dan mengembalikan objek figure Matplotlib untuk grafik gender."""
-    if laki == 0 and perempuan == 0:
-        return None # Tidak perlu membuat grafik jika tidak ada data
-
-    fig, ax = plt.subplots(figsize=(4, 0.8)) # Ukuran grafik kecil dan horizontal
-    data = {'Laki-laki': laki, 'Perempuan': perempuan}
-    kategori = list(data.keys())
-    jumlah = list(data.values())
-    
-    # # Membuat bar chart horizontal (barh)
-    # ax.barh(kategori, jumlah, color=[warna_laki, warna_perempuan], height=0.6)
-    
-    # # Menghilangkan aksis dan frame yang tidak perlu
-    # ax.spines['top'].set_visible(False)
-    # ax.spines['right'].set_visible(False)
-    # ax.spines['left'].set_visible(False)
-    # ax.spines['bottom'].set_visible(False)
-    # ax.xaxis.set_ticks([]) # Sembunyikan angka di sumbu x
-    # ax.yaxis.set_ticks([]) # Sembunyikan label di sumbu y
-    
-    # # Menambahkan label angka di dalam bar
-    # for index, value in enumerate(jumlah):
-    #     if value > 0:
-    #         ax.text(value / 2, index, str(value), ha='center', va='center', color='white', fontweight='bold')
-            
-    # fig.tight_layout(pad=0)
-    # return fig
-
-    # --- PERUBAHAN UTAMA: Gunakan ax.bar() untuk grafik vertikal ---
-    ax.bar(kategori, jumlah, color=[warna_laki, warna_perempuan], width=0.6)
-    
-    # Menghilangkan frame dan sumbu Y
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.yaxis.set_ticks([]) # Sembunyikan angka di sumbu y
-
-    # Menyesuaikan posisi teks agar berada di dalam bar vertikal
-    for i, value in enumerate(jumlah):
-        if value > 0:
-            ax.text(i, value / 2, str(value), ha='center', va='center', color='white', fontweight='bold')
-    
-    # Atur agar tidak ada margin ekstra
-    fig.tight_layout(pad=0)
-    return fig
-    # --- 
-
 
 # --- FUNGSI PEMBUAT GRAFIK ---
-def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#FFB6C1', figsize=(5, 2)):
+def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#FFB6C1'):
     """Membuat dan mengembalikan objek figure Matplotlib untuk grafik gender."""
     if laki == 0 and perempuan == 0:
         return None # Tidak perlu membuat grafik jika tidak ada data
@@ -281,7 +232,7 @@ def page_dashboard():
             # --- GRAFIK DI KOLOM KANAN ---
             with kolom_kanan:
                 with st.container(border=True):
-                    fig = buat_grafik_gender_wil(laki_wilayah, perempuan_wilayah, figsize=(4, 1))
+                    fig = buat_grafik_gender(laki_wilayah, perempuan_wilayah)
                     if fig is not None:
                         st.pyplot(fig)
 
