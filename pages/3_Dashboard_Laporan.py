@@ -64,7 +64,7 @@ def buat_grafik_gender_wil(laki, perempuan, warna_laki='#6495ED', warna_perempua
 
 
 # --- FUNGSI PEMBUAT GRAFIK ---
-def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#FFB6C1', figsize=(4, 2)):
+def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#FFB6C1', figsize=(5, 2)):
     """Membuat dan mengembalikan objek figure Matplotlib untuk grafik gender."""
     if laki == 0 and perempuan == 0:
         return None # Tidak perlu membuat grafik jika tidak ada data
