@@ -61,7 +61,7 @@ def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#
     fig.tight_layout(pad=0)
     return fig
     # --- 
-    
+
 # --- KONEKSI & KEAMANAN ---
 st.set_page_config(page_title="Dashboard & Laporan", page_icon="📈", layout="wide")
 
@@ -241,7 +241,7 @@ def page_dashboard():
                     </span>
                 </div>
             """, unsafe_allow_html=True)
-            
+
             #------------------- [ AWAL PERUBAHAN UTAMA ] -------------------
             baris_demografi = [
                 ("Bayi (0-6 bln)", jumlah_bayi_wilayah, jumlah_bayi_laki_wilayah, jumlah_bayi_perempuan_wilayah),
