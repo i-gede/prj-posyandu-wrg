@@ -268,6 +268,13 @@ def page_dashboard():
                 # Gunakan kolom kanan untuk menampilkan grafik
                 with col_grafik:
                     with st.container(border=True):
+
+                        st.markdown(
+                            """
+                            <div style="display: flex; align-items: center; justify-content: center; height: 100px;">
+                            """,
+                            unsafe_allow_html=True
+                        )
                         # Panggil fungsi grafik Anda
                         fig_gender = buat_grafik_gender(laki, perempuan) # Pastikan nama fungsi ini benar
                         if fig_gender:
