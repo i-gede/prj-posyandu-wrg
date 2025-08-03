@@ -219,7 +219,7 @@ def page_dashboard():
             # --- TEKS DI KOLOM KIRI ---
             with kolom_kiri:
                 st.markdown(f"""
-                    <div style="background-color:{warna_baris}; color:white; padding:10px; border-radius:8px; margin-bottom:10px; font-size: 24px;">
+                    <div style="background-color:{warna_baris}; color:white; padding:10px; border-radius:8px; margin-bottom:24px; font-size: 24px;">
                         <strong>{rt_label}</strong><br>
                         <span style="font-size: 18px;">
                             Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
@@ -235,7 +235,7 @@ def page_dashboard():
 
                     st.markdown(
                         """
-                        <div style="display: flex; align-items: center; justify-content: center; height: 2px;">
+                        <div style="display: flex; align-items: center; justify-content: center; height: 36px;">
                         """,
                         unsafe_allow_html=True
                     )
