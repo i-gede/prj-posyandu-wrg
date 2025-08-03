@@ -236,23 +236,28 @@ def page_dashboard():
 
             # Tampilkan setiap baris demografi dengan grafik
             for label, total, laki, perempuan in baris_demografi:
-                col_teks, col_grafik = st.columns([2, 1])
+                
+                # Buat dua kolom: satu untuk teks, satu untuk grafik
+                col_teks, col_grafik = st.columns([2, 1]) 
 
                 with col_teks:
+                    # --- PERBAIKAN DI SINI ---
+                    # Tag <br> dipindahkan ke akhir setiap baris, setelah angka.
                     st.markdown(f"""
-                    <div style="background-color:#F0F2F6; padding:14px 18px; border-radius:10px; height: 95%; display: flex; flex-direction: column; justify-content: left;">
+                    <div style="background-color:#F0F2F6; padding:14px 18px; border-radius:10px; height: 95%; display: flex; flex-direction: column; justify-content: center;">
                         <strong>{label}</strong><br>
-                        👥 Total: <strong>{total}</strong> &nbsp;&nbsp;
-                        👦 Laki-laki: <strong>{laki}</strong> &nbsp;&nbsp;
+                        👥 Total: <strong>{total}</strong><br>
+                        👦 Laki-laki: <strong>{laki}</strong><br>
                         👧 Perempuan: <strong>{perempuan}</strong>
                     </div>
                     """, unsafe_allow_html=True)
 
                 with col_grafik:
-                    fig_gender = buat_grafik_gender(laki, perempuan)
+                    # Kode untuk membuat grafik tidak perlu diubah
+                    fig_gender = buat_grafik_gender(laki, perempuan) # Pastikan Anda menggunakan fungsi grafik yang sesuai
                     if fig_gender:
                         st.pyplot(fig_gender, use_container_width=True)
-                        plt.close(fig_gender) # Penting untuk menutup figure agar memori tidak bocor
+                        plt.close(fig_gender)
             #------------------- [ AKHIR PERUBAHAN UTAMA ] -------------------
 
             st.divider()
