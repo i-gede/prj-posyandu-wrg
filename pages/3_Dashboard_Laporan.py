@@ -281,7 +281,7 @@ def page_dashboard():
             # --- GRAFIK DI KOLOM KANAN ---
             with kolom_kanan:
                 with st.container(border=True):
-                    fig = buat_grafik_gender_wil(laki_wilayah, perempuan_wilayah)
+                    fig = buat_grafik_gender_wil(laki_wilayah, perempuan_wilayah, figsize=(4, 1))
                     if fig is not None:
                         st.pyplot(fig)
 
