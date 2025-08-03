@@ -271,7 +271,7 @@ def page_dashboard():
 
                         st.markdown(
                             """
-                            <div style="display: flex; align-items: center; justify-content: center; height: 55px;">
+                            <div style="display: flex; align-items: center; justify-content: center; height: 60px;">
                             """,
                             unsafe_allow_html=True
                         )
