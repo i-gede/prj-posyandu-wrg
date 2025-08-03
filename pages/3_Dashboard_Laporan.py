@@ -223,10 +223,37 @@ def page_dashboard():
                     👧 Perempuan: {perempuan_wilayah}
                 </div>
                 """, unsafe_allow_html=True)
-            else:
+            elif selected_wilayah == "1":
+                st.markdown(f"""
+                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 32px;">
+                    <strong>Lingkungan Karang Baru Utara - RT001</strong><br>
+                    Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
+                    👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
+                    👧 Perempuan: {perempuan_wilayah}
+                </div>
+                """, unsafe_allow_html=True)
+            elif selected_wilayah == "2":
+                st.markdown(f"""
+                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 32px;">
+                    <strong>Lingkungan Karang Baru Utara - RT002</strong><br>
+                    Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
+                    👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
+                    👧 Perempuan: {perempuan_wilayah}
+                </div>
+                """, unsafe_allow_html=True)
+            elif selected_wilayah == "3":
                 st.markdown(f"""
                 <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 32px;">
                     <strong>Lingkungan Karang Baru Utara - RT003</strong><br>
+                    Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
+                    👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
+                    👧 Perempuan: {perempuan_wilayah}
+                </div>
+                """, unsafe_allow_html=True) 
+            else:
+                st.markdown(f"""
+                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 32px;">
+                    <strong>Lingkungan Karang Baru Utara - RT004</strong><br>
                     Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
                     👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
                     👧 Perempuan: {perempuan_wilayah}
