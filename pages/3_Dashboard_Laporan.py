@@ -119,9 +119,9 @@ def page_dashboard():
         df_warga = pd.DataFrame(warga_response.data)
         df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data) if pemeriksaan_response.data else pd.DataFrame()
         
-        # Hitung Usia warga berdasarkan hari ini
-        df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
-        df_warga['usia'] = (df_pemeriksaan['tanggal_pemeriksaan'] - df_warga['tanggal_lahir']).dt.days / 365.25
+        # # Hitung Usia warga berdasarkan hari ini
+        # df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
+        # df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
 
         # --- Filter di Halaman Utama ---
         st.subheader("Filter Laporan")
@@ -139,6 +139,9 @@ def page_dashboard():
             index=0 if available_dates else None,
             placeholder="Pilih tanggal..."
         )
+        # Hitung Usia warga berdasarkan hari ini
+        df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
+        df_warga['usia'] = (selected_date - df_warga['tanggal_lahir']).dt.days / 365.25
 
         if selected_date:
             wilayah_options = ["Lingkungan (Semua RT)"] + sorted(df_warga['rt'].dropna().unique().tolist())
