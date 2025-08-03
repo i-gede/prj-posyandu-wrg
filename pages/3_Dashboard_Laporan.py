@@ -232,6 +232,13 @@ def page_dashboard():
             # --- GRAFIK DI KOLOM KANAN ---
             with kolom_kanan:
                 with st.container(border=True):
+
+                    st.markdown(
+                        """
+                        <div style="display: flex; align-items: center; justify-content: center; height: 29px;">
+                        """,
+                        unsafe_allow_html=True
+                    )
                     fig = buat_grafik_gender(laki_wilayah, perempuan_wilayah)
                     if fig is not None:
                         st.pyplot(fig)
