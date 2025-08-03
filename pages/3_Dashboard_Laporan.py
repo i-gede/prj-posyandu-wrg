@@ -249,9 +249,10 @@ def page_dashboard():
 
             # --- GRAFIK DI KOLOM KANAN ---
             with kolom_kanan:
-                fig = buat_grafik_gender(laki_wilayah, perempuan_wilayah)
-                if fig is not None:
-                    st.pyplot(fig)
+                with st.container(border=True):
+                    fig = buat_grafik_gender(laki_wilayah, perempuan_wilayah, figsize=(3, 2))
+                    if fig is not None:
+                        st.pyplot(fig)
 
             #------------------- [ AWAL PERUBAHAN UTAMA ] -------------------
             baris_demografi = [
