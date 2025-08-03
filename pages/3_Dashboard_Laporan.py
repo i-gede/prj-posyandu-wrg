@@ -141,7 +141,7 @@ def page_dashboard():
         )
         # Hitung Usia warga berdasarkan hari ini
         df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
-        df_warga['usia'] = (selected_date - df_warga['tanggal_lahir']).dt.days / 365.25
+        df_warga['usia'] = (pd.to_datetime(selected_date) - df_warga['tanggal_lahir']).dt.days / 365.25
 
         if selected_date:
             wilayah_options = ["Lingkungan (Semua RT)"] + sorted(df_warga['rt'].dropna().unique().tolist())
