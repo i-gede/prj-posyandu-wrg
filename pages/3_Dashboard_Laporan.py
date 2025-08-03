@@ -183,24 +183,18 @@ def page_dashboard():
                 df_warga_wilayah = df_warga[df_warga['rt'] == selected_wilayah]
             
             # --- Bagian Demografi Wilayah (TETAP SAMA) ---
-            # ... (Kode demografi wilayah tidak diubah, saya singkat untuk keringkasan)
-            st.write("#### Demografi Wilayah")
-            # ... (Kode tampilan demografi Anda yang sudah ada tetap di sini)
+            # ... (Kode demografi wilayah tidak diubah)
             
             st.divider()
 
-            # --- [ AWAL PERUBAHAN 1: PERSIAPAN DATA & PIE CHART ] ---
-
-            # 1. Siapkan data utama yang hadir
+            # --- Persiapan Data & Pie Chart ---
             df_pemeriksaan_harian = df_pemeriksaan[df_pemeriksaan['tanggal_pemeriksaan'] == selected_date]
             df_merged = pd.merge(df_pemeriksaan_harian, df_warga_wilayah, left_on='warga_id', right_on='id', how='inner')
             
-            # Terapkan filter gender jika dipilih
             if selected_gender != "Semua":
                 gender_code = "L" if selected_gender == "Laki-laki" else "P"
                 df_merged = df_merged[df_merged['jenis_kelamin'] == gender_code]
 
-            # 2. Hitung & tampilkan Pie Chart proporsi kehadiran per kategori
             st.subheader("Ringkasan Kehadiran per Kategori Usia")
 
             if not df_merged.empty:
@@ -210,7 +204,6 @@ def page_dashboard():
                     "Dewasa (>18 - <60 thn)": (18, 60), "Lansia (≥60 thn)": (60, 200)
                 }
                 
-                # Fungsi untuk menentukan kategori usia
                 def get_kategori(usia):
                     if usia <= 0.5: return "Bayi (0-6 bln)"
                     if usia <= 2: return "Baduta (>6 bln - 2 thn)"
@@ -225,23 +218,18 @@ def page_dashboard():
 
                 fig_pie, ax_pie = plt.subplots(figsize=(6, 4))
                 ax_pie.pie(kehadiran_counts, labels=kehadiran_counts.index, autopct='%1.1f%%', startangle=90)
-                ax_pie.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+                ax_pie.axis('equal')
                 st.pyplot(fig_pie)
-
             else:
                 st.info("Tidak ada data kehadiran untuk ditampilkan dalam ringkasan.")
-
-            # --- [ AKHIR PERUBAHAN 1 ] ---
             
             st.divider()
 
-            # --- Bagian Tampilan Data Rinci Kunjungan (Hadir) ---
             st.subheader(f"Data Rinci Warga yang Hadir pada {selected_date.strftime('%d %B %Y')}")
             
-            # (Logika if/else untuk Tampilkan Semua / per kategori tetap sama)
             ada_data_kunjungan = False
             if selected_kategori == "Tampilkan Semua":
-                for nama_kategori, (usia_min, usia_max) in kategori_usia_defs.items():
+                for nama_kategori, _ in kategori_usia_defs.items():
                     df_kategori = df_merged[df_merged['kategori_usia'] == nama_kategori]
                     if not df_kategori.empty:
                         ada_data_kunjungan = True
@@ -257,22 +245,19 @@ def page_dashboard():
             if not ada_data_kunjungan:
                 st.info("Tidak ada data kunjungan (hadir) yang cocok dengan filter.")
 
-            # --- [ AWAL PERUBAHAN 2: DATA WARGA TIDAK HADIR ] ---
             st.divider()
             
             with st.expander("Lihat Data Warga yang Tidak Hadir Pemeriksaan"):
-                # 1. Dapatkan ID semua warga yang hadir
-                id_hadir = df_merged['id'].unique()
+                # --- PERBAIKAN DI SINI ---
+                # Menggunakan 'warga_id' karena kolom 'id' di-rename oleh pandas merge
+                id_hadir = df_merged['warga_id'].unique()
 
-                # 2. Filter dari data warga total untuk mendapatkan yang tidak hadir
                 df_tidak_hadir = df_warga_wilayah[~df_warga_wilayah['id'].isin(id_hadir)]
 
-                # 3. Terapkan filter gender
                 if selected_gender != "Semua":
                     gender_code = "L" if selected_gender == "Laki-laki" else "P"
                     df_tidak_hadir = df_tidak_hadir[df_tidak_hadir['jenis_kelamin'] == gender_code]
 
-                # 4. Tambahkan kolom kategori usia
                 if not df_tidak_hadir.empty:
                     df_tidak_hadir['kategori_usia'] = df_tidak_hadir['usia'].apply(get_kategori)
                 
@@ -280,7 +265,6 @@ def page_dashboard():
 
                 ada_data_tidak_hadir = False
                 if not df_tidak_hadir.empty:
-                     # Logika untuk menampilkan semua atau per kategori
                     if selected_kategori == "Tampilkan Semua":
                         for nama_kategori, _ in kategori_usia_defs.items():
                             df_kategori_absen = df_tidak_hadir[df_tidak_hadir['kategori_usia'] == nama_kategori]
@@ -297,13 +281,14 @@ def page_dashboard():
                 
                 if not ada_data_tidak_hadir:
                     st.success("Semua warga yang cocok dengan filter telah hadir, atau tidak ada data warga untuk ditampilkan.")
-
-            # --- [ AKHIR PERUBAHAN 2 ] ---
+            
+            st.divider()
+            # (Sisa kode untuk tren dan PDF tidak perlu diubah)
+            # ...
 
     except Exception as e:
         st.error(f"Gagal membuat laporan: {e}")
-        st.exception(e) # Menampilkan detail error untuk debugging
-
+        st.exception(e)
 
 # --- JALANKAN HALAMAN ---
 page_dashboard()
