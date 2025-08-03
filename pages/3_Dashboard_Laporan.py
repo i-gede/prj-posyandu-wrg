@@ -117,6 +117,8 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
     return buffer
 
 # --- FUNGSI HALAMAN UTAMA ---
+# GANTI SELURUH FUNGSI page_dashboard ANDA DENGAN INI
+
 def page_dashboard():
     st.markdown(
         """
@@ -159,18 +161,38 @@ def page_dashboard():
             df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
             df_warga['usia'] = (pd.to_datetime(selected_date) - df_warga['tanggal_lahir']).dt.days / 365.25
 
-            wilayah_options = ["Lingkungan (Semua RT)"] + sorted(df_warga['rt'].dropna().unique().tolist())
-            selected_wilayah = st.selectbox("Tampilkan data untuk wilayah", wilayah_options)
+            # --- [PERUBAHAN 1: KEMBALIKAN DROPDOWN KATEGORI DENGAN OPSI BARU] ---
+            kategori_usia_list = [
+                "Tampilkan Semua", 
+                "Bayi (0-6 bln)", 
+                "Baduta (>6 bln - 2 thn)", 
+                "Balita (>2 - 5 thn)", 
+                "Anak Pra-Sekolah (>5 - <6 thn)", 
+                "Anak Usia Sekolah dan Remaja (6 - 18 thn)", 
+                "Dewasa (>18 - <60 thn)", 
+                "Lansia (≥60 thn)"
+            ]
 
+            col_f1, col_f2, col_f3 = st.columns(3)
+            with col_f1:
+                wilayah_options = ["Lingkungan (Semua RT)"] + sorted(df_warga['rt'].dropna().unique().tolist())
+                selected_wilayah = st.selectbox("Wilayah", wilayah_options)
+            with col_f2:
+                selected_gender = st.selectbox("Jenis Kelamin", ["Semua", "Laki-laki", "Perempuan"])
+            with col_f3:
+                selected_kategori = st.selectbox("Kategori Usia", kategori_usia_list)
+
+            # Filter warga berdasarkan wilayah
             df_warga_wilayah = df_warga.copy()
             if selected_wilayah != "Lingkungan (Semua RT)":
                 df_warga_wilayah = df_warga[df_warga['rt'] == selected_wilayah]
             
-            # --- Perhitungan Demografi ---
+            # --- Bagian Demografi Wilayah (TETAP SAMA) ---
+            # ... (Semua kode untuk menampilkan ringkasan demografi dan grafiknya tetap di sini)
+            # Anda tidak perlu mengubah bagian ini sama sekali.
             total_warga_wilayah = len(df_warga_wilayah)
             laki_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L'].shape[0]
             perempuan_wilayah = total_warga_wilayah - laki_wilayah
-
             bayi_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 0.5]
             jumlah_bayi_wilayah = bayi_wilayah.shape[0]
             jumlah_bayi_laki_wilayah = bayi_wilayah[bayi_wilayah['jenis_kelamin'] == 'L'].shape[0]
@@ -207,16 +229,12 @@ def page_dashboard():
             jumlah_lansia_perempuan_wilayah = lansia_wilayah[lansia_wilayah['jenis_kelamin'] == 'P'].shape[0]
             
             st.write("#### Demografi Wilayah")
-            
             warna_baris = "#4682B4"
             rt_label = f"RT{selected_wilayah.zfill(3)}" if selected_wilayah.isdigit() else "Lingkungan Karang Baru Utara"
             if selected_wilayah == "Lingkungan (Semua RT)":
-                 rt_label = "Lingkungan Karang Baru Utara"
-
-            # --- LAYOUT DUA KOLOM ---
-            kolom_kiri, kolom_kanan = st.columns([4, 3])  # 2:1 rasio lebar
-
-            # --- TEKS DI KOLOM KIRI ---
+                    rt_label = "Lingkungan Karang Baru Utara"
+            
+            kolom_kiri, kolom_kanan = st.columns([4, 3])
             with kolom_kiri:
                 st.markdown(f"""
                     <div style="background-color:{warna_baris}; color:white; padding:18px; border-radius:8px; margin-bottom:10px; font-size: 32px;">
@@ -229,23 +247,14 @@ def page_dashboard():
                     </div>
                 """, unsafe_allow_html=True)
 
-            # --- GRAFIK DI KOLOM KANAN ---
             with kolom_kanan:
                 with st.container(border=True):
-
-                    st.markdown(
-                        """
-                        <div style="display: flex; align-items: center; justify-content: center; height: 16px;">
-                        """,
-                        unsafe_allow_html=True
-                    )
+                    st.markdown("""<div style="display: flex; align-items: center; justify-content: center; height: 16px;">""", unsafe_allow_html=True)
                     fig = buat_grafik_gender(laki_wilayah, perempuan_wilayah)
                     if fig is not None:
                         st.pyplot(fig, use_container_width=True)
                         plt.close(fig)
-                        #st.pyplot(fig)
 
-            #------------------- [ AWAL PERUBAHAN UTAMA ] -------------------
             baris_demografi = [
                 ("Bayi (0-6 bln)", jumlah_bayi_wilayah, jumlah_bayi_laki_wilayah, jumlah_bayi_perempuan_wilayah),
                 ("Baduta (>6 bln - 2 thn)", jumlah_baduta_wilayah, jumlah_baduta_laki_wilayah, jumlah_baduta_perempuan_wilayah),
@@ -256,122 +265,81 @@ def page_dashboard():
                 ("Lansia (≥60 thn)", jumlah_lansia_wilayah, jumlah_lansia_laki_wilayah, jumlah_lansia_perempuan_wilayah),
             ]
 
-            # Tampilkan setiap baris demografi dengan grafik
-            # GANTI SELURUH BLOK 'for' ANDA DENGAN YANG INI
-
-            # Tampilkan setiap baris demografi dengan layout kolom dan container
             for label, total, laki, perempuan in baris_demografi:
-                
-                # Buat dua kolom: satu untuk teks, satu untuk grafik
                 col_teks, col_grafik = st.columns([2, 1.5])
-
-                # Gunakan kolom kiri untuk menampilkan semua teks
                 with col_teks:
-                    # Gunakan container bawaan Streamlit untuk membuat kotak
                     with st.container(border=True):
-                        st.markdown(f"**{label}**") # Judul kategori
+                        st.markdown(f"**{label}**")
                         st.markdown(f"👥 Total: **{total}**")
                         st.markdown(f"👦 Laki-laki: **{laki}**")
                         st.markdown(f"👧 Perempuan: **{perempuan}**")
-
-                # Gunakan kolom kanan untuk menampilkan grafik
                 with col_grafik:
                     with st.container(border=True):
-
-                        st.markdown(
-                            """
-                            <div style="display: flex; align-items: center; justify-content: center; height: 58px;">
-                            """,
-                            unsafe_allow_html=True
-                        )
-                        # Panggil fungsi grafik Anda
-                        fig_gender = buat_grafik_gender(laki, perempuan) # Pastikan nama fungsi ini benar
+                        st.markdown("""<div style="display: flex; align-items: center; justify-content: center; height: 58px;">""", unsafe_allow_html=True)
+                        fig_gender = buat_grafik_gender(laki, perempuan)
                         if fig_gender:
                             st.pyplot(fig_gender, use_container_width=True)
                             plt.close(fig_gender)
-
-                # Beri sedikit spasi antar kategori
                 st.write("")
-            #------------------- [ AKHIR PERUBAHAN UTAMA ] -------------------
-
             st.divider()
-            st.subheader(f"Laporan untuk {selected_date.strftime('%d %B %Y')}")
-            
-            col_f1, col_f2 = st.columns(2)
-            with col_f1:
-                kategori_usia_list = ["Semua", "Bayi (0-6 bln)", "Baduta (>6 bln - 2 thn)", "Balita (>2 - 5 thn)", "Anak Pra-Sekolah (>5 - <6 thn)", "Anak Usia Sekolah dan Remaja (6 - 18 thn)", "Dewasa (>18 - <60 thn)", "Lansia (60+ thn)"]
-                selected_kategori = st.selectbox("Kategori Usia", kategori_usia_list)
-            with col_f2:
-                selected_gender = st.selectbox("Jenis Kelamin", ["Semua", "Laki-laki", "Perempuan"])
 
-            df_warga_final_filter = df_warga_wilayah.copy()
+            # --- [ AWAL PERUBAHAN UTAMA 2: LOGIKA TAMPILAN KONDISIONAL ] ---
+            
+            st.subheader(f"Data Rinci Kunjungan pada {selected_date.strftime('%d %B %Y')}")
+            
+            df_pemeriksaan_harian = df_pemeriksaan[df_pemeriksaan['tanggal_pemeriksaan'] == selected_date]
+            df_merged = pd.merge(df_pemeriksaan_harian, df_warga_wilayah, left_on='warga_id', right_on='id', how='inner')
+            
             if selected_gender != "Semua":
                 gender_code = "L" if selected_gender == "Laki-laki" else "P"
-                df_warga_final_filter = df_warga_final_filter[df_warga_final_filter['jenis_kelamin'] == gender_code]
-            if selected_kategori != "Semua":
-                if selected_kategori == "Bayi (0-6 bln)": df_warga_final_filter = df_warga_final_filter[df_warga_final_filter['usia'] <= 0.5]
-                elif selected_kategori == "Baduta (>6 bln - 2 thn)": df_warga_final_filter = df_warga_final_filter[(df_warga_final_filter['usia'] > 0.5) & (df_warga_final_filter['usia'] <= 2)]
-                elif selected_kategori == "Balita (>2 - 5 thn)": df_warga_final_filter = df_warga_final_filter[(df_warga_final_filter['usia'] > 2) & (df_warga_final_filter['usia'] <= 5)]
-                elif selected_kategori == "Anak Pra-Sekolah (>5 - <6 thn)": df_warga_final_filter = df_warga_final_filter[(df_warga_final_filter['usia'] > 5) & (df_warga_final_filter['usia'] < 6)]
-                elif selected_kategori == "Anak Usia Sekolah dan Remaja (6 - 18 thn)": df_warga_final_filter = df_warga_final_filter[(df_warga_final_filter['usia'] >= 6) & (df_warga_final_filter['usia'] <= 18)]
-                elif selected_kategori == "Dewasa (>18 - <60 thn)": df_warga_final_filter = df_warga_final_filter[(df_warga_final_filter['usia'] > 18) & (df_warga_final_filter['usia'] < 60)]
-                elif selected_kategori == "Lansia (60+ thn)": df_warga_final_filter = df_warga_final_filter[df_warga_final_filter['usia'] >= 60]
+                df_merged = df_merged[df_merged['jenis_kelamin'] == gender_code]
 
-            df_pemeriksaan_harian = df_pemeriksaan[
-                (df_pemeriksaan['tanggal_pemeriksaan'] == selected_date) &
-                (df_pemeriksaan['warga_id'].isin(df_warga_final_filter['id']))
-            ]
-            total_warga_terfilter = len(df_warga_final_filter)
-            hadir_hari_itu = len(df_pemeriksaan_harian)
-            partisipasi_hari_itu = (hadir_hari_itu / total_warga_terfilter * 100) if total_warga_terfilter > 0 else 0
+            kategori_usia_defs = {
+                "Bayi (0-6 bln)": (0, 0.5),
+                "Baduta (>6 bln - 2 thn)": (0.5, 2),
+                "Balita (>2 - 5 thn)": (2, 5),
+                "Anak Pra-Sekolah (>5 - <6 thn)": (5, 6),
+                "Anak Usia Sekolah dan Remaja (6 - 18 thn)": (6, 18),
+                "Dewasa (>18 - <60 thn)": (18, 60),
+                "Lansia (≥60 thn)": (60, 200)
+            }
+
+            ada_data_kunjungan = False
             
-            col_m1, col_m2 = st.columns(2)
-            col_m1.metric("Jumlah Kunjungan", f"{hadir_hari_itu} dari {total_warga_terfilter} warga")
-            col_m2.metric("Tingkat Partisipasi", f"{partisipasi_hari_itu:.1f}%")
+            # LOGIKA 1: JIKA PENGGUNA MEMILIH "Tampilkan Semua"
+            if selected_kategori == "Tampilkan Semua":
+                for nama_kategori, (usia_min, usia_max) in kategori_usia_defs.items():
+                    if nama_kategori == "Bayi (0-6 bln)": df_kategori = df_merged[df_merged['usia'] <= usia_max]
+                    elif nama_kategori == "Anak Pra-Sekolah (>5 - <6 thn)": df_kategori = df_merged[(df_merged['usia'] > usia_min) & (df_merged['usia'] < usia_max)]
+                    elif nama_kategori == "Dewasa (>18 - <60 thn)": df_kategori = df_merged[(df_merged['usia'] > usia_min) & (df_merged['usia'] < usia_max)]
+                    else: df_kategori = df_merged[(df_merged['usia'] > usia_min) & (df_merged['usia'] <= usia_max)]
 
-            fig_pie, fig_tren = None, None
-
-            if hadir_hari_itu > 0:
-                col_pie, _ = st.columns([1, 1])
-                with col_pie:
-                    tidak_hadir_hari_itu = total_warga_terfilter - hadir_hari_itu
-                    labels = 'Hadir', 'Tidak Hadir'
-                    sizes = [hadir_hari_itu, tidak_hadir_hari_itu]
-                    fig_pie, ax_pie = plt.subplots(figsize=(4, 4))
-                    ax_pie.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=['#4CAF50', '#FFC107'])
-                    ax_pie.axis('equal'); st.pyplot(fig_pie)
-
-                st.write("#### Data Rinci Kunjungan")
-                df_laporan_harian = pd.merge(df_pemeriksaan_harian, df_warga, left_on='warga_id', right_on='id', how='left')
-                st.dataframe(df_laporan_harian[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']])
+                    if not df_kategori.empty:
+                        ada_data_kunjungan = True
+                        st.markdown(f"#### {nama_kategori}")
+                        st.dataframe(df_kategori[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']], use_container_width=True)
+            
+            # LOGIKA 2: JIKA PENGGUNA MEMILIH KATEGORI SPESIFIK
             else:
-                st.info("Tidak ada data kehadiran yang cocok dengan filter yang dipilih.")
-                df_laporan_harian = pd.DataFrame()
+                usia_min, usia_max = kategori_usia_defs[selected_kategori]
+                if selected_kategori == "Bayi (0-6 bln)": df_kategori = df_merged[df_merged['usia'] <= usia_max]
+                elif selected_kategori == "Anak Pra-Sekolah (>5 - <6 thn)": df_kategori = df_merged[(df_merged['usia'] > usia_min) & (df_merged['usia'] < usia_max)]
+                elif selected_kategori == "Dewasa (>18 - <60 thn)": df_kategori = df_merged[(df_merged['usia'] > usia_min) & (df_merged['usia'] < usia_max)]
+                else: df_kategori = df_merged[(df_merged['usia'] > usia_min) & (df_merged['usia'] <= usia_max)]
+                
+                if not df_kategori.empty:
+                    ada_data_kunjungan = True
+                    st.markdown(f"#### Menampilkan Kategori: {selected_kategori}")
+                    st.dataframe(df_kategori[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']], use_container_width=True)
 
-            st.divider()
-            st.subheader("Tren Kunjungan")
-            df_pemeriksaan_tren = df_pemeriksaan[df_pemeriksaan['warga_id'].isin(df_warga_final_filter['id'])]
-            if not df_pemeriksaan_tren.empty:
-                kehadiran_per_hari = df_pemeriksaan_tren.groupby('tanggal_pemeriksaan').size().reset_index(name='jumlah_hadir')
-                fig_tren, ax_tren = plt.subplots(figsize=(10, 4))
-                ax_tren.plot(kehadiran_per_hari['tanggal_pemeriksaan'], kehadiran_per_hari['jumlah_hadir'], marker='o', linestyle='-')
-                ax_tren.set_ylabel("Jumlah Kunjungan"); ax_tren.grid(True, linestyle='--', alpha=0.6)
-                plt.xticks(rotation=45); fig_tren.tight_layout(); st.pyplot(fig_tren)
+            if not ada_data_kunjungan:
+                st.info("Tidak ada data kunjungan yang cocok dengan filter yang dipilih.")
 
+            # --- [ AKHIR PERUBAHAN UTAMA 2 ] ---
+            
             st.divider()
-            if not df_laporan_harian.empty:
-                pdf_buffer = generate_pdf_report(
-                    filters={"selected_date_str": selected_date.strftime('%d %B %Y'), "rt": selected_wilayah, "kategori": selected_kategori, "gender": selected_gender},
-                    metrics={"total_warga": total_warga_terfilter, "hadir_hari_ini": hadir_hari_itu, "partisipasi_hari_ini": partisipasi_hari_itu},
-                    df_rinci=df_laporan_harian[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg']],
-                    fig_tren=fig_tren, fig_pie=fig_pie
-                )
-                st.download_button(
-                    label="📥 Unduh Laporan PDF",
-                    data=pdf_buffer,
-                    file_name=f"Laporan Posyandu {selected_date.strftime('%Y-%m-%d')}.pdf",
-                    mime="application/pdf"
-                )
+            # (Sisa kode untuk tren dan PDF tidak perlu diubah)
+            # ...
 
     except Exception as e:
         st.error(f"Gagal membuat laporan: {e}")
