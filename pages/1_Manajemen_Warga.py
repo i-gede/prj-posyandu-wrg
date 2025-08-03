@@ -137,6 +137,53 @@ def page_manajemen_warga():
 
                 plot_individual_trends(df_pemeriksaan)
 
+
+                st.divider()
+                st.write("Pilih pemeriksaan untuk dikelola:")
+                df_pemeriksaan['display_entry'] = "Data tgl " + pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan']).dt.strftime('%Y-%m-%d')
+                pemeriksaan_to_edit = st.selectbox("Pilih data pemeriksaan:", df_pemeriksaan['display_entry'])
+                
+                selected_pemeriksaan = df_pemeriksaan[df_pemeriksaan['display_entry'] == pemeriksaan_to_edit].iloc[0]
+
+                with st.expander("Revisi Hasil Pemeriksaan Terpilih"):
+                    with st.form("edit_pemeriksaan_form"):
+                        st.write(f"Mengubah data untuk pemeriksaan tanggal **{selected_pemeriksaan['tanggal_pemeriksaan']}**")
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            edit_tensi_sistolik = st.number_input("Tensi Sistolik (mmHg)", value=int(selected_pemeriksaan['tensi_sistolik']))
+                            edit_berat_badan = st.number_input("Berat Badan (kg)", value=float(selected_pemeriksaan['berat_badan_kg']))
+                            edit_lingkar_perut = st.number_input("Lingkar Perut (cm)", value=float(selected_pemeriksaan['lingkar_perut_cm']))
+                            edit_gula_darah = st.number_input("Gula Darah (mg/dL)", value=int(selected_pemeriksaan['gula_darah']))
+                        with col2:
+                            edit_tensi_diastolik = st.number_input("Tensi Diastolik (mmHg)", value=int(selected_pemeriksaan['tensi_diastolik']))
+                            edit_lingkar_lengan = st.number_input("Lingkar Lengan (cm)", value=float(selected_pemeriksaan['lingkar_lengan_cm']))
+                            edit_kolesterol = st.number_input("Kolesterol (mg/dL)", value=int(selected_pemeriksaan['kolesterol']))
+                        
+                        edit_catatan = st.text_area("Catatan", value=selected_pemeriksaan['catatan'])
+
+                        if st.form_submit_button("Simpan Perubahan Pemeriksaan"):
+                            try:
+                                update_data = {
+                                    "tensi_sistolik": edit_tensi_sistolik, "tensi_diastolik": edit_tensi_diastolik,
+                                    "berat_badan_kg": edit_berat_badan, "lingkar_perut_cm": edit_lingkar_perut,
+                                    "lingkar_lengan_cm": edit_lingkar_lengan, "gula_darah": edit_gula_darah,
+                                    "kolesterol": edit_kolesterol, "catatan": edit_catatan
+                                }
+                                supabase.table("pemeriksaan").update(update_data).eq("id", selected_pemeriksaan['id']).execute()
+                                st.success("Data pemeriksaan berhasil diperbarui."); st.rerun()
+                            except Exception as e:
+                                st.error(f"Gagal memperbarui data pemeriksaan: {e}")
+                
+                with st.expander("❌ Hapus Hasil Pemeriksaan Terpilih"):
+                    st.warning(f"PERHATIAN: Anda akan menghapus data pemeriksaan tanggal **{selected_pemeriksaan['tanggal_pemeriksaan']}**. Tindakan ini tidak dapat diurungkan.")
+                    if st.checkbox(f"Saya yakin ingin menghapus data pemeriksaan ini.", key=f"delete_check_{selected_pemeriksaan['id']}"):
+                        if st.button("Hapus Pemeriksaan Ini Secara Permanen"):
+                            try:
+                                supabase.table("pemeriksaan").delete().eq("id", selected_pemeriksaan['id']).execute()
+                                st.success("Data pemeriksaan berhasil dihapus."); st.rerun()
+                            except Exception as e:
+                                st.error(f"Gagal menghapus data pemeriksaan: {e}")
                 # Sisa logika untuk edit dan hapus data pemeriksaan... (bisa ditambahkan di sini)
 
     except Exception as e:
