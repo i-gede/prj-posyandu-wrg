@@ -318,7 +318,7 @@ def page_dashboard():
                 with col_grafik:
                     with st.container(border=True):
                         # Panggil fungsi grafik Anda
-                        fig_gender = buat_grafik_gender(laki, perempuan, figsize=(5,3)) # Pastikan nama fungsi ini benar
+                        fig_gender = buat_grafik_gender(laki, perempuan, figsize=(1,2)) # Pastikan nama fungsi ini benar
                         if fig_gender:
                             st.pyplot(fig_gender, use_container_width=True)
                             plt.close(fig_gender)
