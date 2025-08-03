@@ -13,20 +13,43 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
+# --- FUNGSI PEMBUAT GRAFIK ---
+def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#FFB6C1'):
+    """Membuat dan mengembalikan objek figure Matplotlib untuk grafik gender."""
+    if laki == 0 and perempuan == 0:
+        return None # Tidak perlu membuat grafik jika tidak ada data
+
+    fig, ax = plt.subplots(figsize=(4, 0.8)) # Ukuran grafik kecil dan horizontal
+    data = {'Laki-laki': laki, 'Perempuan': perempuan}
+    kategori = list(data.keys())
+    jumlah = list(data.values())
+    
+    # Membuat bar chart horizontal
+    ax.barh(kategori, jumlah, color=[warna_laki, warna_perempuan], height=0.6)
+    
+    # Menghilangkan aksis dan frame yang tidak perlu
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.xaxis.set_ticks([]) # Sembunyikan angka di sumbu x
+    ax.yaxis.set_ticks([]) # Sembunyikan label di sumbu y
+    
+    # Menambahkan label angka di dalam bar
+    for index, value in enumerate(jumlah):
+        if value > 0:
+            ax.text(value / 2, index, str(value), ha='center', va='center', color='white', fontweight='bold')
+            
+    fig.tight_layout(pad=0)
+    return fig
+
 # --- KONEKSI & KEAMANAN ---
 st.set_page_config(page_title="Dashboard & Laporan", page_icon="📈", layout="wide")
 
-# Blokir akses jika pengguna belum login
 if not st.session_state.get("authenticated", False):
     st.error("🔒 Anda harus login untuk mengakses halaman ini.")
     st.stop()
 
-# --- KONEKSI & KEAMANAN ---
-if not st.session_state.get("authenticated", False):
-    st.error("🔒 Anda harus login untuk mengakses halaman ini.")
-    st.stop()
-
-# Ambil koneksi super-admin dari session state yang sudah dibuat saat login
 supabase = st.session_state.get('supabase_client')
 if not supabase:
     st.error("Koneksi Supabase tidak ditemukan. Silakan login kembali.")
@@ -40,10 +63,8 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
     
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
-
     elements = []
 
-    # Judul Laporan
     elements.append(Paragraph("Laporan Posyandu Mawar - KBU", styles['h1']))
     elements.append(Spacer(1, 0.2 * inch))
     
@@ -51,7 +72,6 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
     elements.append(Paragraph(filter_text, styles['Normal']))
     elements.append(Spacer(1, 0.3 * inch))
 
-    # Ringkasan Metrik
     elements.append(Paragraph("Ringkasan Laporan", styles['h2']))
     metric_data = [
         ['Total Warga', f": {metrics['total_warga']}"],
@@ -63,7 +83,6 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
     elements.append(metric_table)
     elements.append(Spacer(1, 0.3 * inch))
 
-    # Grafik Pie Chart
     if fig_pie:
         img_buffer_pie = BytesIO()
         fig_pie.savefig(img_buffer_pie, format='png', dpi=300, bbox_inches='tight')
@@ -119,11 +138,6 @@ def page_dashboard():
         df_warga = pd.DataFrame(warga_response.data)
         df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data) if pemeriksaan_response.data else pd.DataFrame()
         
-        # # Hitung Usia warga berdasarkan hari ini
-        # df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
-        # df_warga['usia'] = (datetime.now() - df_warga['tanggal_lahir']).dt.days / 365.25
-
-        # --- Filter di Halaman Utama ---
         st.subheader("Filter Laporan")
         
         if df_pemeriksaan.empty:
@@ -139,11 +153,11 @@ def page_dashboard():
             index=0 if available_dates else None,
             placeholder="Pilih tanggal..."
         )
-        # Hitung Usia warga berdasarkan hari ini
-        df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
-        df_warga['usia'] = (pd.to_datetime(selected_date) - df_warga['tanggal_lahir']).dt.days / 365.25
-
+        
         if selected_date:
+            df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
+            df_warga['usia'] = (pd.to_datetime(selected_date) - df_warga['tanggal_lahir']).dt.days / 365.25
+
             wilayah_options = ["Lingkungan (Semua RT)"] + sorted(df_warga['rt'].dropna().unique().tolist())
             selected_wilayah = st.selectbox("Tampilkan data untuk wilayah", wilayah_options)
 
@@ -152,152 +166,64 @@ def page_dashboard():
                 df_warga_wilayah = df_warga[df_warga['rt'] == selected_wilayah]
             
             # --- Perhitungan Demografi ---
-            # (Seluruh blok perhitungan demografi dari kode asli Anda)
             total_warga_wilayah = len(df_warga_wilayah)
             laki_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L'].shape[0]
             perempuan_wilayah = total_warga_wilayah - laki_wilayah
 
-            # Menghitung jumlah warga bayi usia < 0.5 tahun
             bayi_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 0.5]
             jumlah_bayi_wilayah = bayi_wilayah.shape[0]
-            # Memisahkan berdasarkan jenis kelamin
             jumlah_bayi_laki_wilayah = bayi_wilayah[bayi_wilayah['jenis_kelamin'] == 'L'].shape[0]
             jumlah_bayi_perempuan_wilayah = bayi_wilayah[bayi_wilayah['jenis_kelamin'] == 'P'].shape[0]
 
-            # Menghitung jumlah warga baduta usia ? 0.5 tahun dan < 2 tahun
             baduta_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] > 0.5) & (df_warga_wilayah['usia'] < 2)]
             jumlah_baduta_wilayah = baduta_wilayah.shape[0]
-            # Memisahkan berdasarkan jenis kelamin
             jumlah_baduta_laki_wilayah = baduta_wilayah[baduta_wilayah['jenis_kelamin'] == 'L'].shape[0]
             jumlah_baduta_perempuan_wilayah = baduta_wilayah[baduta_wilayah['jenis_kelamin'] == 'P'].shape[0]
 
-            # Menghitung jumlah warga balita usia ?= 2 tahun dan < 5 tahun
             balita_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 2) & (df_warga_wilayah['usia'] < 5)]
             jumlah_balita_wilayah = balita_wilayah.shape[0]
-            # Memisahkan berdasarkan jenis kelamin
             jumlah_balita_laki_wilayah = balita_wilayah[balita_wilayah['jenis_kelamin'] == 'L'].shape[0]
             jumlah_balita_perempuan_wilayah = balita_wilayah[balita_wilayah['jenis_kelamin'] == 'P'].shape[0]
 
-            # Menghitung jumlah warga anak-anak usia ?= 5 tahun dan < 10 tahun
             anak_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 5) & (df_warga_wilayah['usia'] < 10)]
             jumlah_anak_wilayah = anak_wilayah.shape[0]
-            # Memisahkan berdasarkan jenis kelamin
             jumlah_anak_laki_wilayah = anak_wilayah[anak_wilayah['jenis_kelamin'] == 'L'].shape[0]
             jumlah_anak_perempuan_wilayah = anak_wilayah[anak_wilayah['jenis_kelamin'] == 'P'].shape[0]
 
-            # Menghitung jumlah warga remaja usia ?= 10 tahun dan < 20 tahun
             remaja_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 10) & (df_warga_wilayah['usia'] < 20)]
             jumlah_remaja_wilayah = remaja_wilayah.shape[0]
-            # Memisahkan berdasarkan jenis kelamin
             jumlah_remaja_laki_wilayah = remaja_wilayah[remaja_wilayah['jenis_kelamin'] == 'L'].shape[0]
             jumlah_remaja_perempuan_wilayah = remaja_wilayah[remaja_wilayah['jenis_kelamin'] == 'P'].shape[0]
 
-            # Menghitung jumlah warga dewasa usia ?= 20 tahun dan < 60 tahun
             dewasa_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 20) & (df_warga_wilayah['usia'] < 60)]
             jumlah_dewasa_wilayah = dewasa_wilayah.shape[0]
-            # Memisahkan berdasarkan jenis kelamin
             jumlah_dewasa_laki_wilayah = dewasa_wilayah[dewasa_wilayah['jenis_kelamin'] == 'L'].shape[0]
             jumlah_dewasa_perempuan_wilayah = dewasa_wilayah[dewasa_wilayah['jenis_kelamin'] == 'P'].shape[0]
 
-            # Menghitung jumlah warga lansia usia ?= 60 tahun
             lansia_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] >= 60]
             jumlah_lansia_wilayah = lansia_wilayah.shape[0]
-            # Memisahkan berdasarkan jenis kelamin
             jumlah_lansia_laki_wilayah = lansia_wilayah[lansia_wilayah['jenis_kelamin'] == 'L'].shape[0]
             jumlah_lansia_perempuan_wilayah = lansia_wilayah[lansia_wilayah['jenis_kelamin'] == 'P'].shape[0]
             
             st.write("#### Demografi Wilayah")
-            # col1, col2, col3 = st.columns(3)
-            # col1.metric("Total Warga", total_warga_wilayah)
-            # col2.metric("👦 Laki-laki", laki_wilayah)
-            # col3.metric("👧 Perempuan", perempuan_wilayah)
-
             
-            warna_baris = "#4682B4"  # Steel Blue (lebih terang) #0A2342 Dark Metallic Blue
+            warna_baris = "#4682B4"
+            rt_label = f"RT{selected_wilayah.zfill(3)}" if selected_wilayah.isdigit() else "Lingkungan Karang Baru Utara"
             if selected_wilayah == "Lingkungan (Semua RT)":
-                st.markdown(f"""
-                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 32px;">
-                    <strong>Lingkungan Karang Baru Utara</strong><br>
-                    Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
-                    👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
-                    👧 Perempuan: {perempuan_wilayah}
+                 rt_label = "Lingkungan Karang Baru Utara"
+
+            st.markdown(f"""
+                <div style="background-color:{warna_baris}; color:white; padding:10px; border-radius:8px; margin-bottom:10px; font-size: 24px;">
+                    <strong>{rt_label}</strong><br>
+                    <span style="font-size: 18px;">
+                        Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
+                        👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
+                        👧 Perempuan: {perempuan_wilayah}
+                    </span>
                 </div>
-                """, unsafe_allow_html=True)
-            elif selected_wilayah == "1":
-                st.markdown(f"""
-                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 32px;">
-                    <strong>Lingkungan Karang Baru Utara - RT001</strong><br>
-                    Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
-                    👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
-                    👧 Perempuan: {perempuan_wilayah}
-                </div>
-                """, unsafe_allow_html=True)
-            elif selected_wilayah == "2":
-                st.markdown(f"""
-                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 32px;">
-                    <strong>Lingkungan Karang Baru Utara - RT002</strong><br>
-                    Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
-                    👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
-                    👧 Perempuan: {perempuan_wilayah}
-                </div>
-                """, unsafe_allow_html=True)
-            elif selected_wilayah == "3":
-                st.markdown(f"""
-                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 32px;">
-                    <strong>Lingkungan Karang Baru Utara - RT003</strong><br>
-                    Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
-                    👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
-                    👧 Perempuan: {perempuan_wilayah}
-                </div>
-                """, unsafe_allow_html=True) 
-            else:
-                st.markdown(f"""
-                <div style="background-color:{warna_baris}; padding:10px; border-radius:8px; margin-bottom:5px; font-size: 32px;">
-                    <strong>Lingkungan Karang Baru Utara - RT004</strong><br>
-                    Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
-                    👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
-                    👧 Perempuan: {perempuan_wilayah}
-                </div>
-                """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
             
-            # r_1col1, r_1col2, r_1col3 = st.columns(3)
-            # r_1col1.metric("Bayi (0-6 bln)", jumlah_bayi_wilayah)
-            # r_1col2.metric("Laki-laki", jumlah_bayi_laki_wilayah)
-            # r_1col3.metric("Perempuan", jumlah_bayi_perempuan_wilayah)
-
-            # r_2col1, r_2col2, r_2col3 = st.columns(3)
-            # r_2col1.metric("Baduta (6 bln - <2 thn)", jumlah_baduta_wilayah)
-            # r_2col2.metric("Laki-laki", jumlah_baduta_laki_wilayah)
-            # r_2col3.metric("Perempuan", jumlah_baduta_perempuan_wilayah)
-
-            # r_3col1, r_3col2, r_3col3 = st.columns(3)
-            # r_3col1.metric("Balita (2 - <5 thn)", jumlah_balita_wilayah)
-            # r_3col2.metric("Laki-laki", jumlah_balita_laki_wilayah)
-            # r_3col3.metric("Perempuan", jumlah_balita_perempuan_wilayah)
-
-            # r_4col1, r_4col2, r_4col3 = st.columns(3)
-            # r_4col1.metric("Anak-anak (5 - <10 thn)", jumlah_anak_wilayah)
-            # r_4col2.metric("Laki-laki", jumlah_anak_laki_wilayah)
-            # r_4col3.metric("Perempuan", jumlah_anak_perempuan_wilayah)
-
-            # r_5col1, r_5col2, r_5col3 = st.columns(3)
-            # r_5col1.metric("Remaja (10 - <20 thn)", jumlah_remaja_wilayah)
-            # r_5col2.metric("Laki-laki", jumlah_remaja_laki_wilayah)
-            # r_5col3.metric("Perempuan", jumlah_remaja_perempuan_wilayah)
-
-            # r_6col1, r_6col2, r_6col3 = st.columns(3)
-            # r_6col1.metric("Dewasa (20 - <60 thn)", jumlah_dewasa_wilayah)
-            # r_6col2.metric("Laki-laki", jumlah_dewasa_laki_wilayah)
-            # r_6col3.metric("Perempuan", jumlah_dewasa_perempuan_wilayah)
-
-            # r_7col1, r_7col2, r_7col3 = st.columns(3)
-            # r_7col1.metric("Lansia (20 - <60 thn)", jumlah_lansia_wilayah)
-            # r_7col2.metric("Laki-laki", jumlah_lansia_laki_wilayah)
-            # r_7col3.metric("Perempuan", jumlah_lansia_perempuan_wilayah)
-
-            #-------------------------------------------------------------------------------------------------------
-            # tampilan berwarna di web
-            # Data demografi yang sudah dihitung sebelumnya
+            #------------------- [ AWAL PERUBAHAN UTAMA ] -------------------
             baris_demografi = [
                 ("Bayi (0-6 bln)", jumlah_bayi_wilayah, jumlah_bayi_laki_wilayah, jumlah_bayi_perempuan_wilayah),
                 ("Baduta (6 bln - <2 thn)", jumlah_baduta_wilayah, jumlah_baduta_laki_wilayah, jumlah_baduta_perempuan_wilayah),
@@ -308,46 +234,30 @@ def page_dashboard():
                 ("Lansia (≥60 thn)", jumlah_lansia_wilayah, jumlah_lansia_laki_wilayah, jumlah_lansia_perempuan_wilayah),
             ]
 
-            # Warna berbeda untuk tiap baris
-            warna_baris_list = [
-                "#e6f7ff",  # biru muda
-                "#fff0f5",  # pink muda
-                "#e6f7ff",  # biru muda
-                "#fff0f5",  # pink muda
-                "#e6f7ff",  # biru muda
-                "#fff0f5",  # pink muda
-                "#e6f7ff",  # biru muda
-            ]
+            # Tampilkan setiap baris demografi dengan grafik
+            for label, total, laki, perempuan in baris_demografi:
+                col_teks, col_grafik = st.columns([2, 1])
 
-            # # Warna berbeda untuk tiap baris
-            # warna_baris_list = [
-            #     "#e6f7ff",  # biru muda
-            #     "#fff0f5",  # pink muda
-            #     "#f0fff0",  # hijau pucat
-            #     "#ffffe0",  # kuning pucat
-            #     "#ffe4e1",  # salmon muda
-            #     "#f5f5dc",  # beige
-            #     "#e0ffff",  # cyan muda
-            # ]
+                with col_teks:
+                    st.markdown(f"""
+                    <div style="background-color:#F0F2F6; padding:14px 18px; border-radius:10px; height: 95%; display: flex; flex-direction: column; justify-content: center;">
+                        <strong>{label}</strong><br>
+                        👥 Total: <strong>{total}</strong> &nbsp;&nbsp;
+                        👦 Laki-laki: <strong>{laki}</strong> &nbsp;&nbsp;
+                        👧 Perempuan: <strong>{perempuan}</strong>
+                    </div>
+                    """, unsafe_allow_html=True)
 
-            # Tampilkan setiap baris demografi
-            for i, (label, total, laki, perempuan) in enumerate(baris_demografi):
-                warna = warna_baris_list[i % len(warna_baris_list)]
-                #with st.expander(f"**{label} (Total: {total})**", expanded=False):
-                st.markdown(f"""
-                <div style="background-color:{warna}; padding:12px 16px; border-radius:10px; margin-bottom:8px; font-size: 16px; font-family: sans-serif;">
-                    <strong>{label}</strong><br>
-                    👥 Total: <strong>{total}</strong> &nbsp;&nbsp;&nbsp;
-                    👦 Laki-laki: <strong>{laki}</strong> &nbsp;&nbsp;&nbsp;
-                    👧 Perempuan: <strong>{perempuan}</strong>
-                </div>
-                """, unsafe_allow_html=True)
-            #-------------------------------------------------------------------------------------------------------
+                with col_grafik:
+                    fig_gender = buat_grafik_gender(laki, perempuan)
+                    if fig_gender:
+                        st.pyplot(fig_gender, use_container_width=True)
+                        plt.close(fig_gender) # Penting untuk menutup figure agar memori tidak bocor
+            #------------------- [ AKHIR PERUBAHAN UTAMA ] -------------------
 
             st.divider()
             st.subheader(f"Laporan untuk {selected_date.strftime('%d %B %Y')}")
             
-            # --- Filter Lanjutan ---
             col_f1, col_f2 = st.columns(2)
             with col_f1:
                 kategori_usia_list = ["Semua", "Bayi (0-6 bln)", "Baduta (6 bln - <2 thn)", "Balita (2 - <5 thn)", "Anak-anak (5 - <10 thn)", "Remaja (10 - <20 thn)", "Dewasa (20 - <60 thn)", "Lansia (60+ thn)"]
@@ -355,7 +265,6 @@ def page_dashboard():
             with col_f2:
                 selected_gender = st.selectbox("Jenis Kelamin", ["Semua", "Laki-laki", "Perempuan"])
 
-            # Terapkan filter ke dataframe warga
             df_warga_final_filter = df_warga_wilayah.copy()
             if selected_gender != "Semua":
                 gender_code = "L" if selected_gender == "Laki-laki" else "P"
@@ -369,7 +278,6 @@ def page_dashboard():
                 elif selected_kategori == "Dewasa (20 - <60 thn)": df_warga_final_filter = df_warga_final_filter[(df_warga_final_filter['usia'] >= 20) & (df_warga_final_filter['usia'] < 60)]
                 elif selected_kategori == "Lansia (60+ thn)": df_warga_final_filter = df_warga_final_filter[df_warga_final_filter['usia'] >= 60]
 
-            # --- Perhitungan Metrik ---
             df_pemeriksaan_harian = df_pemeriksaan[
                 (df_pemeriksaan['tanggal_pemeriksaan'] == selected_date) &
                 (df_pemeriksaan['warga_id'].isin(df_warga_final_filter['id']))
@@ -382,10 +290,8 @@ def page_dashboard():
             col_m1.metric("Jumlah Kunjungan", f"{hadir_hari_itu} dari {total_warga_terfilter} warga")
             col_m2.metric("Tingkat Partisipasi", f"{partisipasi_hari_itu:.1f}%")
 
-            # Inisialisasi fig_pie dan fig_tren
             fig_pie, fig_tren = None, None
 
-            # --- Visualisasi ---
             if hadir_hari_itu > 0:
                 col_pie, _ = st.columns([1, 1])
                 with col_pie:
@@ -401,7 +307,7 @@ def page_dashboard():
                 st.dataframe(df_laporan_harian[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']])
             else:
                 st.info("Tidak ada data kehadiran yang cocok dengan filter yang dipilih.")
-                df_laporan_harian = pd.DataFrame() # Buat dataframe kosong jika tidak ada data
+                df_laporan_harian = pd.DataFrame()
 
             st.divider()
             st.subheader("Tren Kunjungan")
@@ -413,7 +319,6 @@ def page_dashboard():
                 ax_tren.set_ylabel("Jumlah Kunjungan"); ax_tren.grid(True, linestyle='--', alpha=0.6)
                 plt.xticks(rotation=45); fig_tren.tight_layout(); st.pyplot(fig_tren)
 
-            # --- Tombol Unduh PDF ---
             st.divider()
             if not df_laporan_harian.empty:
                 pdf_buffer = generate_pdf_report(
