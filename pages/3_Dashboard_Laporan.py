@@ -555,6 +555,31 @@ def page_dashboard():
             # (Sisa kode untuk tren dan PDF tidak perlu diubah)
             # ...
 
+            st.divider()
+            st.subheader("Tren Kunjungan")
+            df_pemeriksaan_tren = df_pemeriksaan[df_pemeriksaan['warga_id'].isin(df_warga_final_filter['id'])]
+            if not df_pemeriksaan_tren.empty:
+                kehadiran_per_hari = df_pemeriksaan_tren.groupby('tanggal_pemeriksaan').size().reset_index(name='jumlah_hadir')
+                fig_tren, ax_tren = plt.subplots(figsize=(10, 4))
+                ax_tren.plot(kehadiran_per_hari['tanggal_pemeriksaan'], kehadiran_per_hari['jumlah_hadir'], marker='o', linestyle='-')
+                ax_tren.set_ylabel("Jumlah Kunjungan"); ax_tren.grid(True, linestyle='--', alpha=0.6)
+                plt.xticks(rotation=45); fig_tren.tight_layout(); st.pyplot(fig_tren)
+
+            st.divider()
+            if not df_laporan_harian.empty:
+                pdf_buffer = generate_pdf_report(
+                    filters={"selected_date_str": selected_date.strftime('%d %B %Y'), "rt": selected_wilayah, "kategori": selected_kategori, "gender": selected_gender},
+                    metrics={"total_warga": total_warga_terfilter, "hadir_hari_ini": hadir_hari_itu, "partisipasi_hari_ini": partisipasi_hari_itu},
+                    df_rinci=df_laporan_harian[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg']],
+                    fig_tren=fig_tren, fig_pie=fig_pie
+                )
+                st.download_button(
+                    label="📥 Unduh Laporan PDF",
+                    data=pdf_buffer,
+                    file_name=f"Laporan Posyandu {selected_date.strftime('%Y-%m-%d')}.pdf",
+                    mime="application/pdf"
+
+
     except Exception as e:
         st.error(f"Gagal membuat laporan: {e}")
         st.exception(e)
