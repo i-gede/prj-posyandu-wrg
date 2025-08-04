@@ -269,7 +269,7 @@ def page_dashboard():
 
 
             # --- [ AWAL BLOK KODE BARU UNTUK SUNBURST KOMPOSISI WARGA ] ---
-            st.subheader("Visualisasi Komposisi Warga")
+            st.subheader("Komposisi Warga")
 
             # 1. Siapkan data untuk visualisasi
             df_komposisi = df_warga_wilayah.copy()
@@ -287,7 +287,7 @@ def page_dashboard():
                     df_komposisi,
                     path=['kategori_usia', 'jenis_kelamin'],
                     values='count',
-                    title='Diagram Komposisi Warga (Kategori Usia > Jenis Kelamin)',
+                    title='Diagram Komposisi Warga',
                     color='kategori_usia',
                     color_discrete_sequence=px.colors.qualitative.Pastel
                 )
@@ -397,7 +397,7 @@ def page_dashboard():
 
             # --- [ AWAL PERUBAHAN UTAMA: DIAGRAM TINGKAT PARTISIPASI ] ---
             
-            st.subheader("Tingkat Partisipasi per Kategori Usia")
+            st.subheader("Tingkat Partisipasi Berdasarkan Usia")
 
             df_pemeriksaan_harian = df_pemeriksaan[df_pemeriksaan['tanggal_pemeriksaan'] == selected_date]
             df_merged = pd.merge(df_pemeriksaan_harian, df_warga_wilayah, left_on='warga_id', right_on='id', how='inner')
@@ -471,7 +471,7 @@ def page_dashboard():
             
             st.divider()
 
-            with st.expander("Lihat Data Rinci Warga yang Hadir Pemeriksaan"):
+            with st.expander("Lihat Data Rinci Warga yang Hadir Posyandu"):
 
                 st.subheader(f"Data Rinci Warga yang Hadir pada {selected_date.strftime('%d %B %Y')}")
                 
@@ -495,7 +495,7 @@ def page_dashboard():
 
             # st.divider()
             
-            with st.expander("Lihat Data Warga yang Tidak Hadir Pemeriksaan"):
+            with st.expander("Lihat Data Warga yang Tidak Hadir Posyandu"):
                 # --- PERBAIKAN DI SINI ---
                 # Menggunakan 'warga_id' karena kolom 'id' di-rename oleh pandas merge
                 id_hadir = df_merged['warga_id'].unique()
