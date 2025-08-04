@@ -430,25 +430,27 @@ def page_dashboard():
             
             st.divider()
 
-            st.subheader(f"Data Rinci Warga yang Hadir pada {selected_date.strftime('%d %B %Y')}")
-            
-            ada_data_kunjungan = False
-            if selected_kategori == "Tampilkan Semua":
-                for nama_kategori, _ in kategori_usia_defs.items():
-                    df_kategori = df_merged[df_merged['kategori_usia'] == nama_kategori]
+            with st.expander("Lihat Data Rinci Warga yang Hadir Pemeriksaan"):
+
+                st.subheader(f"Data Rinci Warga yang Hadir pada {selected_date.strftime('%d %B %Y')}")
+                
+                ada_data_kunjungan = False
+                if selected_kategori == "Tampilkan Semua":
+                    for nama_kategori, _ in kategori_usia_defs.items():
+                        df_kategori = df_merged[df_merged['kategori_usia'] == nama_kategori]
+                        if not df_kategori.empty:
+                            ada_data_kunjungan = True
+                            st.markdown(f"#### {nama_kategori}")
+                            st.dataframe(df_kategori[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']], use_container_width=True)
+                else:
+                    df_kategori = df_merged[df_merged['kategori_usia'] == selected_kategori]
                     if not df_kategori.empty:
                         ada_data_kunjungan = True
-                        st.markdown(f"#### {nama_kategori}")
+                        st.markdown(f"#### Menampilkan Kategori: {selected_kategori}")
                         st.dataframe(df_kategori[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']], use_container_width=True)
-            else:
-                df_kategori = df_merged[df_merged['kategori_usia'] == selected_kategori]
-                if not df_kategori.empty:
-                    ada_data_kunjungan = True
-                    st.markdown(f"#### Menampilkan Kategori: {selected_kategori}")
-                    st.dataframe(df_kategori[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']], use_container_width=True)
 
-            if not ada_data_kunjungan:
-                st.info("Tidak ada data kunjungan (hadir) yang cocok dengan filter.")
+                if not ada_data_kunjungan:
+                    st.info("Tidak ada data kunjungan (hadir) yang cocok dengan filter.")
 
             st.divider()
             
