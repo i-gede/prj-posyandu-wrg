@@ -2,7 +2,6 @@
 
 import streamlit as st
 import pandas as pd
-import plotly.express as px # <--- IMPORT PUSTAKA BARU
 import matplotlib.pyplot as plt
 from supabase import create_client
 from datetime import date, datetime
@@ -189,50 +188,6 @@ def page_dashboard():
             # ... (Kode demografi tidak perlu diubah) ...
             
             st.divider()
-
-            # --- [ BLOK KODE BARU UNTUK SUNBURST CHART ] ---
-            st.subheader("Ringkasan Partisipasi Keseluruhan")
-
-            # 1. Tentukan siapa yang Hadir dan Tidak Hadir secara keseluruhan
-            df_pemeriksaan_harian = df_pemeriksaan[df_pemeriksaan['tanggal_pemeriksaan'] == selected_date]
-            id_hadir_keseluruhan = df_pemeriksaan_harian['warga_id'].unique()
-            
-            df_hadir = df_warga_wilayah[df_warga_wilayah['id'].isin(id_hadir_keseluruhan)].copy()
-            df_hadir['status'] = 'Hadir'
-
-            df_tidak_hadir = df_warga_wilayah[~df_warga_wilayah['id'].isin(id_hadir_keseluruhan)].copy()
-            df_tidak_hadir['status'] = 'Tidak Hadir'
-
-            # 2. Gabungkan data untuk visualisasi
-            df_all_status = pd.concat([df_hadir, df_tidak_hadir])
-            df_all_status['jenis_kelamin'] = df_all_status['jenis_kelamin'].map({'L': 'Laki-laki', 'P': 'Perempuan'}).fillna('N/A')
-            df_all_status['rt'] = 'RT ' + df_all_status['rt'].astype(str)
-            df_all_status['count'] = 1 
-            
-            # Filter berdasarkan gender jika dipilih
-            if selected_gender != "Semua":
-                df_all_status = df_all_status[df_all_status['jenis_kelamin'] == selected_gender]
-
-
-            if not df_all_status.empty:
-                # 3. Buat dan tampilkan diagram Sunburst
-                fig_sunburst = px.sunburst(
-                    df_all_status,
-                    path=['status', 'rt', 'jenis_kelamin'],
-                    values='count',
-                    title='Diagram Partisipasi Warga (Total > RT > Jenis Kelamin)',
-                    color='status',
-                    color_discrete_map={'Hadir': '#4CAF50', 'Tidak Hadir': '#FFC107', '(?)':'#E0E0E0'}
-                )
-                fig_sunburst.update_layout(margin=dict(t=50, l=25, r=25, b=25))
-                fig_sunburst.update_traces(textinfo='label+percent parent', insidetextorientation='radial')
-                st.plotly_chart(fig_sunburst, use_container_width=True)
-            else:
-                st.info("Tidak ada data untuk ditampilkan pada ringkasan partisipasi.")
-
-            st.divider()
-            # --- [ AKHIR DARI BLOK KODE BARU ] ---
-
 
             # --- [ AWAL PERUBAHAN UTAMA: DIAGRAM TINGKAT PARTISIPASI ] ---
             
