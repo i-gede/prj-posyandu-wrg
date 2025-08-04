@@ -452,7 +452,7 @@ def page_dashboard():
                 if not ada_data_kunjungan:
                     st.info("Tidak ada data kunjungan (hadir) yang cocok dengan filter.")
 
-            st.divider()
+            # st.divider()
             
             with st.expander("Lihat Data Warga yang Tidak Hadir Pemeriksaan"):
                 # --- PERBAIKAN DI SINI ---
