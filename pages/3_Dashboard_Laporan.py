@@ -269,6 +269,7 @@ def page_dashboard():
 
 
             # --- [ AWAL BLOK KODE BARU UNTUK SUNBURST KOMPOSISI WARGA ] ---
+            # --- [ BLOK KODE SUNBURST KOMPOSISI WARGA YANG DIPERBAIKI ] ---
             st.subheader("Komposisi Warga")
 
             # 1. Siapkan data untuk visualisasi
@@ -280,14 +281,20 @@ def page_dashboard():
             # Filter berdasarkan gender jika dipilih
             if selected_gender != "Semua":
                 df_komposisi = df_komposisi[df_komposisi['jenis_kelamin'] == selected_gender]
-            
+
             # 2. Buat dan tampilkan diagram Sunburst untuk Komposisi Warga
             if not df_komposisi.empty:
+                # Tambahkan kolom untuk label total sebagai pusat diagram
+                total_warga = len(df_komposisi)
+                df_komposisi['total_label'] = f'Total Warga: {total_warga}'
+                
                 fig_sunburst_komposisi = px.sunburst(
                     df_komposisi,
-                    path=['kategori_usia', 'jenis_kelamin'],
+                    # Urutan path diubah sesuai permintaan: Total -> Kategori Usia -> Jenis Kelamin
+                    path=['total_label', 'kategori_usia', 'jenis_kelamin'],
                     values='count',
-                    title='Diagram Komposisi Warga',
+                    title='Diagram Komposisi Warga (Total > Kategori Usia > Jenis Kelamin)',
+                    # Mewarnai berdasarkan kategori usia untuk membedakan segmen utama
                     color='kategori_usia',
                     color_discrete_sequence=px.colors.qualitative.Pastel
                 )
