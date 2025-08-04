@@ -495,13 +495,17 @@ def page_dashboard():
                         if not df_kategori.empty:
                             ada_data_kunjungan = True
                             st.markdown(f"#### {nama_kategori}")
-                            st.dataframe(df_kategori[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']], use_container_width=True)
+                            df_display = df_kategori.reset_index(drop=True)
+                            df_display.index += 1 # Membuat indeks mulai dari 1
+                            st.dataframe(df_display[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']], use_container_width=True)
                 else:
                     df_kategori = df_merged[df_merged['kategori_usia'] == selected_kategori]
                     if not df_kategori.empty:
                         ada_data_kunjungan = True
                         st.markdown(f"#### Menampilkan Kategori: {selected_kategori}")
-                        st.dataframe(df_kategori[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']], use_container_width=True)
+                        df_display = df_kategori.reset_index(drop=True)
+                        df_display.index += 1 # Membuat indeks mulai dari 1
+                        st.dataframe(df_display[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']], use_container_width=True)
 
                 if not ada_data_kunjungan:
                     st.info("Tidak ada data kunjungan (hadir) yang cocok dengan filter.")
@@ -532,13 +536,17 @@ def page_dashboard():
                             if not df_kategori_absen.empty:
                                 ada_data_tidak_hadir = True
                                 st.markdown(f"#### Tidak Hadir: {nama_kategori}")
-                                st.dataframe(df_kategori_absen[['nama_lengkap', 'rt', 'blok']], use_container_width=True)
+                                df_display_absen = df_kategori_absen.reset_index(drop=True)
+                                df_display_absen.index += 1 # Membuat indeks mulai dari 1
+                                st.dataframe(df_display_absen[['nama_lengkap', 'rt', 'blok']], use_container_width=True)
                     else:
                         df_kategori_absen = df_tidak_hadir[df_tidak_hadir['kategori_usia'] == selected_kategori]
                         if not df_kategori_absen.empty:
                             ada_data_tidak_hadir = True
                             st.markdown(f"#### Tidak Hadir: {selected_kategori}")
-                            st.dataframe(df_kategori_absen[['nama_lengkap', 'rt', 'blok']], use_container_width=True)
+                            df_display_absen = df_kategori_absen.reset_index(drop=True)
+                            df_display_absen.index += 1 # Membuat indeks mulai dari 1
+                            st.dataframe(df_display_absen[['nama_lengkap', 'rt', 'blok']], use_container_width=True)
                 
                 if not ada_data_tidak_hadir:
                     st.success("Semua warga yang cocok dengan filter telah hadir, atau tidak ada data warga untuk ditampilkan.")
