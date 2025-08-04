@@ -372,12 +372,16 @@ def page_dashboard():
 
             # 4. Buat dan tampilkan diagram Sunburst
             if not df_partisipasi.empty:
+                # Tambahkan kolom untuk label total sebagai pusat diagram
+                total_hadir = len(df_partisipasi)
+                df_partisipasi['total_label'] = f'Total Hadir: {total_hadir}'
+
                 fig_sunburst_partisipasi = px.sunburst(
                     df_partisipasi,
-                    # Urutan path diubah sesuai permintaan: RT -> Kategori Usia -> Jenis Kelamin
-                    path=['rt', 'kategori_usia', 'jenis_kelamin'],
+                    # Urutan path diubah untuk menempatkan total di tengah
+                    path=['total_label', 'rt', 'kategori_usia', 'jenis_kelamin'],
                     values='count',
-                    title='Diagram Partisipasi Warga Hadir (RT > Kategori Usia > Jenis Kelamin)',
+                    title='Diagram Partisipasi Warga Hadir (Total > RT > Kategori Usia > Jenis Kelamin)',
                     # Mewarnai berdasarkan RT untuk membedakan wilayah
                     color='rt',
                     color_discrete_sequence=px.colors.qualitative.Antique
@@ -390,6 +394,7 @@ def page_dashboard():
                 st.plotly_chart(fig_sunburst_partisipasi, use_container_width=True)
             else:
                 st.info("Tidak ada data partisipasi (hadir) yang cocok dengan filter untuk ditampilkan.")
+
 
 
             st.divider()
