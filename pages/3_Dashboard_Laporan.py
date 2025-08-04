@@ -187,7 +187,127 @@ def page_dashboard():
             
             # --- Bagian Demografi Wilayah (TETAP SAMA) ---
             # ... (Kode demografi tidak perlu diubah) ...
+
+            # --- Perhitungan Demografi ---
+            total_warga_wilayah = len(df_warga_wilayah)
+            laki_wilayah = df_warga_wilayah[df_warga_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            perempuan_wilayah = total_warga_wilayah - laki_wilayah
+
+            bayi_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] <= 0.5]
+            jumlah_bayi_wilayah = bayi_wilayah.shape[0]
+            jumlah_bayi_laki_wilayah = bayi_wilayah[bayi_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_bayi_perempuan_wilayah = bayi_wilayah[bayi_wilayah['jenis_kelamin'] == 'P'].shape[0]
+
+            baduta_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] > 0.5) & (df_warga_wilayah['usia'] < 2)]
+            jumlah_baduta_wilayah = baduta_wilayah.shape[0]
+            jumlah_baduta_laki_wilayah = baduta_wilayah[baduta_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_baduta_perempuan_wilayah = baduta_wilayah[baduta_wilayah['jenis_kelamin'] == 'P'].shape[0]
+
+            balita_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 2) & (df_warga_wilayah['usia'] < 5)]
+            jumlah_balita_wilayah = balita_wilayah.shape[0]
+            jumlah_balita_laki_wilayah = balita_wilayah[balita_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_balita_perempuan_wilayah = balita_wilayah[balita_wilayah['jenis_kelamin'] == 'P'].shape[0]
+
+            anak_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 5) & (df_warga_wilayah['usia'] < 10)]
+            jumlah_anak_wilayah = anak_wilayah.shape[0]
+            jumlah_anak_laki_wilayah = anak_wilayah[anak_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_anak_perempuan_wilayah = anak_wilayah[anak_wilayah['jenis_kelamin'] == 'P'].shape[0]
+
+            remaja_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 10) & (df_warga_wilayah['usia'] < 20)]
+            jumlah_remaja_wilayah = remaja_wilayah.shape[0]
+            jumlah_remaja_laki_wilayah = remaja_wilayah[remaja_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_remaja_perempuan_wilayah = remaja_wilayah[remaja_wilayah['jenis_kelamin'] == 'P'].shape[0]
+
+            dewasa_wilayah = df_warga_wilayah[(df_warga_wilayah['usia'] >= 20) & (df_warga_wilayah['usia'] < 60)]
+            jumlah_dewasa_wilayah = dewasa_wilayah.shape[0]
+            jumlah_dewasa_laki_wilayah = dewasa_wilayah[dewasa_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_dewasa_perempuan_wilayah = dewasa_wilayah[dewasa_wilayah['jenis_kelamin'] == 'P'].shape[0]
+
+            lansia_wilayah = df_warga_wilayah[df_warga_wilayah['usia'] >= 60]
+            jumlah_lansia_wilayah = lansia_wilayah.shape[0]
+            jumlah_lansia_laki_wilayah = lansia_wilayah[lansia_wilayah['jenis_kelamin'] == 'L'].shape[0]
+            jumlah_lansia_perempuan_wilayah = lansia_wilayah[lansia_wilayah['jenis_kelamin'] == 'P'].shape[0]
             
+            st.write("#### Demografi Wilayah")
+            
+            warna_baris = "#4682B4"
+            rt_label = f"RT{selected_wilayah.zfill(3)}" if selected_wilayah.isdigit() else "Lingkungan Karang Baru Utara"
+            if selected_wilayah == "Lingkungan (Semua RT)":
+                 rt_label = "Lingkungan Karang Baru Utara"
+
+            # --- LAYOUT DUA KOLOM ---
+            kolom_kiri, kolom_kanan = st.columns([4, 3])  # 2:1 rasio lebar
+
+            # --- TEKS DI KOLOM KIRI ---
+            with kolom_kiri:
+                st.markdown(f"""
+                    <div style="background-color:{warna_baris}; color:white; padding:10px; border-radius:8px; margin-bottom:10px; font-size: 24px;">
+                        <strong>{rt_label}</strong><br>
+                        <span style="font-size: 18px;">
+                            Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
+                            👦 Laki-laki: {laki_wilayah} &nbsp;&nbsp;&nbsp;
+                            👧 Perempuan: {perempuan_wilayah}
+                        </span>
+                    </div>
+                """, unsafe_allow_html=True)
+
+            # --- GRAFIK DI KOLOM KANAN ---
+            with kolom_kanan:
+                with st.container(border=True):
+                    fig = buat_grafik_gender(laki_wilayah, perempuan_wilayah)
+                    if fig is not None:
+                        st.pyplot(fig)
+
+            #------------------- [ AWAL PERUBAHAN UTAMA ] -------------------
+            baris_demografi = [
+                ("Bayi (0-6 bln)", jumlah_bayi_wilayah, jumlah_bayi_laki_wilayah, jumlah_bayi_perempuan_wilayah),
+                ("Baduta (6 bln - <2 thn)", jumlah_baduta_wilayah, jumlah_baduta_laki_wilayah, jumlah_baduta_perempuan_wilayah),
+                ("Balita (2 - <5 thn)", jumlah_balita_wilayah, jumlah_balita_laki_wilayah, jumlah_balita_perempuan_wilayah),
+                ("Anak-anak (5 - <10 thn)", jumlah_anak_wilayah, jumlah_anak_laki_wilayah, jumlah_anak_perempuan_wilayah),
+                ("Remaja (10 - <20 thn)", jumlah_remaja_wilayah, jumlah_remaja_laki_wilayah, jumlah_remaja_perempuan_wilayah),
+                ("Dewasa (20 - <60 thn)", jumlah_dewasa_wilayah, jumlah_dewasa_laki_wilayah, jumlah_dewasa_perempuan_wilayah),
+                ("Lansia (≥60 thn)", jumlah_lansia_wilayah, jumlah_lansia_laki_wilayah, jumlah_lansia_perempuan_wilayah),
+            ]
+
+            # Tampilkan setiap baris demografi dengan grafik
+            # GANTI SELURUH BLOK 'for' ANDA DENGAN YANG INI
+
+            # Tampilkan setiap baris demografi dengan layout kolom dan container
+            for label, total, laki, perempuan in baris_demografi:
+                
+                # Buat dua kolom: satu untuk teks, satu untuk grafik
+                col_teks, col_grafik = st.columns([2, 1.5])
+
+                # Gunakan kolom kiri untuk menampilkan semua teks
+                with col_teks:
+                    # Gunakan container bawaan Streamlit untuk membuat kotak
+                    with st.container(border=True):
+                        st.markdown(f"**{label}**") # Judul kategori
+                        st.markdown(f"👥 Total: **{total}**")
+                        st.markdown(f"👦 Laki-laki: **{laki}**")
+                        st.markdown(f"👧 Perempuan: **{perempuan}**")
+
+                # Gunakan kolom kanan untuk menampilkan grafik
+                with col_grafik:
+                    with st.container(border=True):
+
+                        st.markdown(
+                            """
+                            <div style="display: flex; align-items: center; justify-content: center; height: 58px;">
+                            """,
+                            unsafe_allow_html=True
+                        )
+                        # Panggil fungsi grafik Anda
+                        fig_gender = buat_grafik_gender(laki, perempuan) # Pastikan nama fungsi ini benar
+                        if fig_gender:
+                            st.pyplot(fig_gender, use_container_width=True)
+                            plt.close(fig_gender)
+
+                # Beri sedikit spasi antar kategori
+                st.write("")
+            #------------------- [ AKHIR PERUBAHAN UTAMA ] -------------------
+
+
             st.divider()
 
             # --- [ BLOK KODE BARU UNTUK SUNBURST CHART ] ---
