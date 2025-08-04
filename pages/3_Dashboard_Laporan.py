@@ -258,6 +258,37 @@ def page_dashboard():
                     if fig is not None:
                         st.pyplot(fig)
 
+
+            # --- [ AWAL BLOK KODE BARU UNTUK SUNBURST KOMPOSISI WARGA ] ---
+            st.subheader("Visualisasi Komposisi Warga")
+
+            # 1. Siapkan data untuk visualisasi
+            df_komposisi = df_warga_wilayah.copy()
+            df_komposisi['kategori_usia'] = df_komposisi['usia'].apply(get_kategori)
+            df_komposisi['jenis_kelamin'] = df_komposisi['jenis_kelamin'].map({'L': 'Laki-laki', 'P': 'Perempuan'}).fillna('N/A')
+            df_komposisi['count'] = 1 
+
+            # Filter berdasarkan gender jika dipilih
+            if selected_gender != "Semua":
+                df_komposisi = df_komposisi[df_komposisi['jenis_kelamin'] == selected_gender]
+            
+            # 2. Buat dan tampilkan diagram Sunburst untuk Komposisi Warga
+            if not df_komposisi.empty:
+                fig_sunburst_komposisi = px.sunburst(
+                    df_komposisi,
+                    path=['kategori_usia', 'jenis_kelamin'],
+                    values='count',
+                    title='Diagram Komposisi Warga (Kategori Usia > Jenis Kelamin)',
+                    color='kategori_usia',
+                    color_discrete_sequence=px.colors.qualitative.Pastel
+                )
+                fig_sunburst_komposisi.update_layout(margin=dict(t=50, l=25, r=25, b=25))
+                fig_sunburst_komposisi.update_traces(textinfo='label+percent parent', insidetextorientation='radial')
+                st.plotly_chart(fig_sunburst_komposisi, use_container_width=True)
+            else:
+                st.info("Tidak ada data komposisi warga yang cocok dengan filter.")
+            # --- [ AKHIR BLOK KODE BARU ] ---
+            
             #------------------- [ AWAL PERUBAHAN UTAMA ] -------------------
             baris_demografi = [
                 ("Bayi (0-6 bln)", jumlah_bayi_wilayah, jumlah_bayi_laki_wilayah, jumlah_bayi_perempuan_wilayah),
@@ -272,7 +303,7 @@ def page_dashboard():
             # Tampilkan setiap baris demografi dengan grafik
             # GANTI SELURUH BLOK 'for' ANDA DENGAN YANG INI
 
-            with st.expander("Lihat Rinci Data Warga"):
+            with st.expander("Lihat Rinci Data Komposisi Warga"):
                 # Tampilkan setiap baris demografi dengan layout kolom dan container
                 for label, total, laki, perempuan in baris_demografi:
                     
