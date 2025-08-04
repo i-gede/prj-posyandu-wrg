@@ -351,45 +351,46 @@ def page_dashboard():
 
             st.divider()
 
-            # --- [ BLOK KODE BARU UNTUK SUNBURST CHART ] ---
-            st.subheader("Ringkasan Partisipasi Keseluruhan")
+            # --- [ BLOK KODE SUNBURST PARTISIPASI YANG DIPERBAIKI ] ---
+            st.subheader("Ringkasan Partisipasi Warga yang Hadir")
 
-            # 1. Tentukan siapa yang Hadir dan Tidak Hadir secara keseluruhan
+            # 1. Ambil data warga yang hadir saja
             df_pemeriksaan_harian = df_pemeriksaan[df_pemeriksaan['tanggal_pemeriksaan'] == selected_date]
             id_hadir_keseluruhan = df_pemeriksaan_harian['warga_id'].unique()
-            
-            df_hadir = df_warga_wilayah[df_warga_wilayah['id'].isin(id_hadir_keseluruhan)].copy()
-            df_hadir['status'] = 'Hadir'
+            df_partisipasi = df_warga_wilayah[df_warga_wilayah['id'].isin(id_hadir_keseluruhan)].copy()
 
-            df_tidak_hadir = df_warga_wilayah[~df_warga_wilayah['id'].isin(id_hadir_keseluruhan)].copy()
-            df_tidak_hadir['status'] = 'Tidak Hadir'
+            # 2. Siapkan kolom yang diperlukan untuk diagram
+            # Pastikan fungsi get_kategori sudah didefinisikan sebelumnya di dalam page_dashboard()
+            df_partisipasi['kategori_usia'] = df_partisipasi['usia'].apply(get_kategori)
+            df_partisipasi['jenis_kelamin'] = df_partisipasi['jenis_kelamin'].map({'L': 'Laki-laki', 'P': 'Perempuan'}).fillna('N/A')
+            df_partisipasi['rt'] = 'RT ' + df_partisipasi['rt'].astype(str)
+            df_partisipasi['count'] = 1 
 
-            # 2. Gabungkan data untuk visualisasi
-            df_all_status = pd.concat([df_hadir, df_tidak_hadir])
-            df_all_status['jenis_kelamin'] = df_all_status['jenis_kelamin'].map({'L': 'Laki-laki', 'P': 'Perempuan'}).fillna('N/A')
-            df_all_status['rt'] = 'RT ' + df_all_status['rt'].astype(str)
-            df_all_status['count'] = 1 
-            
-            # Filter berdasarkan gender jika dipilih
+            # 3. Filter berdasarkan gender jika dipilih di filter utama
             if selected_gender != "Semua":
-                df_all_status = df_all_status[df_all_status['jenis_kelamin'] == selected_gender]
+                df_partisipasi = df_partisipasi[df_partisipasi['jenis_kelamin'] == selected_gender]
 
-
-            if not df_all_status.empty:
-                # 3. Buat dan tampilkan diagram Sunburst
-                fig_sunburst = px.sunburst(
-                    df_all_status,
-                    path=['status', 'rt', 'jenis_kelamin'],
+            # 4. Buat dan tampilkan diagram Sunburst
+            if not df_partisipasi.empty:
+                fig_sunburst_partisipasi = px.sunburst(
+                    df_partisipasi,
+                    # Urutan path diubah sesuai permintaan: RT -> Kategori Usia -> Jenis Kelamin
+                    path=['rt', 'kategori_usia', 'jenis_kelamin'],
                     values='count',
-                    title='Diagram Partisipasi Warga (Total > RT > Jenis Kelamin)',
-                    color='status',
-                    color_discrete_map={'Hadir': '#4CAF50', 'Tidak Hadir': '#FFC107', '(?)':'#E0E0E0'}
+                    title='Diagram Partisipasi Warga Hadir (RT > Kategori Usia > Jenis Kelamin)',
+                    # Mewarnai berdasarkan RT untuk membedakan wilayah
+                    color='rt',
+                    color_discrete_sequence=px.colors.qualitative.Antique
                 )
-                fig_sunburst.update_layout(margin=dict(t=50, l=25, r=25, b=25))
-                fig_sunburst.update_traces(textinfo='label+percent parent', insidetextorientation='radial')
-                st.plotly_chart(fig_sunburst, use_container_width=True)
+                fig_sunburst_partisipasi.update_layout(margin=dict(t=50, l=25, r=25, b=25))
+                fig_sunburst_partisipasi.update_traces(
+                    textinfo='label+percent parent', 
+                    insidetextorientation='radial'
+                )
+                st.plotly_chart(fig_sunburst_partisipasi, use_container_width=True)
             else:
-                st.info("Tidak ada data untuk ditampilkan pada ringkasan partisipasi.")
+                st.info("Tidak ada data partisipasi (hadir) yang cocok dengan filter untuk ditampilkan.")
+
 
             st.divider()
             # --- [ AKHIR DARI BLOK KODE BARU ] ---
