@@ -489,7 +489,7 @@ def page_dashboard():
                 if not ada_data_tidak_hadir:
                     st.success("Semua warga yang cocok dengan filter telah hadir, atau tidak ada data warga untuk ditampilkan.")
             
-            st.divider()
+            # st.divider()
             # (Sisa kode untuk tren dan PDF tidak perlu diubah)
             # ...
 
