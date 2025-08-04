@@ -250,7 +250,7 @@ def page_dashboard():
             # --- TEKS DI KOLOM KIRI ---
             with kolom_kiri:
                 st.markdown(f"""
-                    <div style="background-color:{warna_baris}; color:white; padding:10px; border-radius:8px; margin-bottom:10px; font-size: 32px;">
+                    <div style="background-color:{warna_baris}; color:white; padding:10px; border-radius:8px; margin-bottom:10px; font-size: 33px;">
                         <strong>{rt_label}</strong><br>
                         <span style="font-size: 18px;">
                             Jumlah Warga: {total_warga_wilayah} &nbsp;&nbsp;&nbsp;
