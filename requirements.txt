@@ -5,3 +5,4 @@ supabase
 # Tambahkan openpyxl jika Anda masih menggunakan file .xlsx di aplikasi ini
 # openpyxl
 reportlab
+plotly
