@@ -117,6 +117,15 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
     buffer.seek(0)
     return buffer
 
+# Fungsi untuk menentukan kategori usia, digunakan di banyak tempat
+def get_kategori(usia):
+    if usia <= 0.5: return "Bayi (0-6 bln)"
+    if usia <= 2: return "Baduta (>6 bln - 2 thn)"
+    if usia <= 5: return "Balita (>2 - 5 thn)"
+    if usia < 6: return "Anak Pra-Sekolah (>5 - <6 thn)"
+    if usia <= 18: return "Anak Usia Sekolah dan Remaja (6 - 18 thn)"
+    if usia < 60: return "Dewasa (>18 - <60 thn)"
+    return "Lansia (≥60 thn)"
 # --- FUNGSI HALAMAN UTAMA ---
 # GANTI SELURUH FUNGSI page_dashboard ANDA DENGAN INI
 
@@ -288,7 +297,7 @@ def page_dashboard():
             else:
                 st.info("Tidak ada data komposisi warga yang cocok dengan filter.")
             # --- [ AKHIR BLOK KODE BARU ] ---
-            
+
             #------------------- [ AWAL PERUBAHAN UTAMA ] -------------------
             baris_demografi = [
                 ("Bayi (0-6 bln)", jumlah_bayi_wilayah, jumlah_bayi_laki_wilayah, jumlah_bayi_perempuan_wilayah),
@@ -407,15 +416,15 @@ def page_dashboard():
                 "Dewasa (>18 - <60 thn)": (18, 60), "Lansia (≥60 thn)": (60, 200)
             }
             
-            # Fungsi untuk menentukan kategori usia, digunakan di banyak tempat
-            def get_kategori(usia):
-                if usia <= 0.5: return "Bayi (0-6 bln)"
-                if usia <= 2: return "Baduta (>6 bln - 2 thn)"
-                if usia <= 5: return "Balita (>2 - 5 thn)"
-                if usia < 6: return "Anak Pra-Sekolah (>5 - <6 thn)"
-                if usia <= 18: return "Anak Usia Sekolah dan Remaja (6 - 18 thn)"
-                if usia < 60: return "Dewasa (>18 - <60 thn)"
-                return "Lansia (≥60 thn)"
+            # # Fungsi untuk menentukan kategori usia, digunakan di banyak tempat
+            # def get_kategori(usia):
+            #     if usia <= 0.5: return "Bayi (0-6 bln)"
+            #     if usia <= 2: return "Baduta (>6 bln - 2 thn)"
+            #     if usia <= 5: return "Balita (>2 - 5 thn)"
+            #     if usia < 6: return "Anak Pra-Sekolah (>5 - <6 thn)"
+            #     if usia <= 18: return "Anak Usia Sekolah dan Remaja (6 - 18 thn)"
+            #     if usia < 60: return "Dewasa (>18 - <60 thn)"
+            #     return "Lansia (≥60 thn)"
             
             # Buat kolom untuk menata diagram
             cols = st.columns(4)
