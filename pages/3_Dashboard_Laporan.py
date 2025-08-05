@@ -58,7 +58,7 @@ if not supabase:
     st.stop()
 
 # --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
-def generate_pdf_report(filters, metrics, df_rinci, df_rinci_tidak, fig_komposisi, fig_partisipasi):
+def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi):
     """
     Membuat laporan PDF dari data yang sudah difilter.
     Fungsi ini dimodifikasi untuk menerima gambar dari Plotly.
@@ -132,23 +132,6 @@ def generate_pdf_report(filters, metrics, df_rinci, df_rinci_tidak, fig_komposis
             ('FONTSIZE', (0,1), (-1,-1), 9)
         ]))
         elements.append(data_rinci_table)
-    else:
-        elements.append(Paragraph("Tidak ada data kunjungan rinci untuk ditampilkan.", styles['Normal']))
-
-    # Pastikan ada data sebelum membuat tabel
-    if not df_rinci_tidak.empty:
-        table_data_tidak = [df_rinci_tidak.columns.to_list()] + df_rinci_tidak.values.tolist()
-        data_rinci_table_tidak = Table(table_data_tidak, repeatRows=1, hAlign='LEFT')
-        data_rinci_table_tidak.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,0), colors.darkslategray), ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-            ('ALIGN', (0,0), (-1,-1), 'CENTER'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), ('FONTSIZE', (0,0), (-1,0), 10),
-            ('BOTTOMPADDING', (0,0), (-1,0), 12),
-            ('BACKGROUND', (0,1), (-1,-1), colors.beige),
-            ('GRID', (0,0), (-1,-1), 1, colors.black),
-            ('FONTSIZE', (0,1), (-1,-1), 9)
-        ]))
-        elements.append(data_rinci_table_tidak)
     else:
         elements.append(Paragraph("Tidak ada data kunjungan rinci untuk ditampilkan.", styles['Normal']))
 
@@ -632,27 +615,11 @@ def page_dashboard():
                 }, inplace=True)
                 df_laporan_rinci['Usia (thn)'] = df_laporan_rinci['Usia (thn)'].round(1)
 
-            # d. Data Rinci tidak hadir (format ulang untuk laporan)
-            df_laporan_rinci_tidak_hadir = pd.DataFrame()
-            if not df_tidak_hadir.empty:
-                df_laporan_rinci_tidak_hadir = df_tidak_hadir[[
-                    'nama_lengkap', 'rt', 'usia', 'tensi_sistolik', 'tensi_diastolik', 
-                    'berat_badan_kg', 'gula_darah', 'kolesterol'
-                ]].copy()
-                df_laporan_rinci_tidak_hadir.rename(columns={
-                    'nama_lengkap': 'Nama Lengkap', 'rt': 'RT', 'usia': 'Usia (thn)',
-                    'tensi_sistolik': 'Sistolik', 'tensi_diastolik': 'Diastolik',
-                    'berat_badan_kg': 'Berat (kg)', 'gula_darah': 'Gula Darah',
-                    'kolesterol': 'Kolesterol'
-                }, inplace=True)
-                df_laporan_rinci_tidak_hadir['Usia (thn)'] = df_laporan_rinci_tidak_hadir['Usia (thn)'].round(1)
-
             # 2. Hasilkan file PDF di memori
             pdf_buffer = generate_pdf_report(
                 filters=filters_for_pdf,
                 metrics=metrics_for_pdf,
                 df_rinci=df_laporan_rinci,
-                df_rinci_tidak=df_laporan_rinci_tidak_hadir
                 fig_komposisi=fig_sunburst_komposisi,
                 fig_partisipasi=fig_sunburst_partisipasi
             )
