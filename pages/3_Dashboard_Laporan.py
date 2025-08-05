@@ -120,6 +120,8 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
     
     # Pastikan ada data sebelum membuat tabel
     if not df_rinci.empty:
+        df_rinci = df_rinci.copy()
+        df_rinci.insert(0, "No", range(1, len(df_rinci) + 1))  # Tambahkan nomor urut
         table_data = [df_rinci.columns.to_list()] + df_rinci.values.tolist()
         data_rinci_table = Table(table_data, repeatRows=1, hAlign='LEFT')
         data_rinci_table.setStyle(TableStyle([
@@ -141,6 +143,8 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
     elements.append(Paragraph("Data Warga Tidak Hadir", styles['h2']))
     elements.append(Spacer(1, 0.2 * inch))
     if df_tidak_hadir is not None and not df_tidak_hadir.empty:
+        df_tidak_hadir = df_tidak_hadir.copy()
+        df_tidak_hadir.insert(0, "No", range(1, len(df_tidak_hadir) + 1))  # Tambahkan nomor urut
         table_data_tidak_hadir = [df_tidak_hadir.columns.to_list()] + df_tidak_hadir.values.tolist()
         data_tidak_hadir_table = Table(table_data_tidak_hadir, repeatRows=1, hAlign='LEFT')
         data_tidak_hadir_table.setStyle(TableStyle([
