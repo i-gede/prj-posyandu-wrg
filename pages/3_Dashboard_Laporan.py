@@ -57,9 +57,12 @@ if not supabase:
     st.error("Koneksi Supabase tidak ditemukan. Silakan login kembali.")
     st.stop()
 
-# --- FUNGSI PEMBANTU PDF ---
-def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
-    """Membuat laporan PDF dari data yang sudah difilter."""
+# --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
+def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi):
+    """
+    Membuat laporan PDF dari data yang sudah difilter.
+    Fungsi ini dimodifikasi untuk menerima gambar dari Plotly.
+    """
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
     
@@ -67,51 +70,70 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_tren, fig_pie):
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
     elements = []
 
+    # --- Header ---
     elements.append(Paragraph("Laporan Posyandu Mawar - KBU", styles['h1']))
     elements.append(Spacer(1, 0.2 * inch))
     
-    filter_text = f"<b>Laporan:</b><br/>- Tanggal: {filters['selected_date_str']}<br/>- Wilayah: {filters['rt']}<br/>- Kategori Usia: {filters['kategori']}<br/>- Jenis Kelamin: {filters['gender']}"
+    filter_text = f"<b>Filter Laporan:</b><br/>- Tanggal: {filters['selected_date_str']}<br/>- Wilayah: {filters['rt']}<br/>- Kategori Usia: {filters['kategori']}<br/>- Jenis Kelamin: {filters['gender']}"
     elements.append(Paragraph(filter_text, styles['Normal']))
     elements.append(Spacer(1, 0.3 * inch))
 
+    # --- Ringkasan Metrik ---
     elements.append(Paragraph("Ringkasan Laporan", styles['h2']))
     metric_data = [
-        ['Total Warga', f": {metrics['total_warga']}"],
-        ['Jumlah Kunjungan', f": {metrics['hadir_hari_ini']}"],
+        ['Total Warga (sesuai filter)', f": {metrics['total_warga']}"],
+        ['Jumlah Kunjungan (Hadir)', f": {metrics['hadir_hari_ini']}"],
         ['Tingkat Partisipasi', f": {metrics['partisipasi_hari_ini']:.1f}%"]
     ]
     metric_table = Table(metric_data, colWidths=[2.5*inch, 2.5*inch])
-    metric_table.setStyle(TableStyle([('ALIGN', (0,0), (-1,-1), 'LEFT'), ('FONTNAME', (0,0), (-1,-1), 'Helvetica')]))
+    metric_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE')
+    ]))
     elements.append(metric_table)
     elements.append(Spacer(1, 0.3 * inch))
 
-    if fig_pie:
-        img_buffer_pie = BytesIO()
-        fig_pie.savefig(img_buffer_pie, format='png', dpi=300, bbox_inches='tight')
-        img_buffer_pie.seek(0)
-        elements.append(Image(img_buffer_pie, width=4*inch, height=4*inch))
-    
+    # --- Grafik Komposisi Warga ---
+    if fig_komposisi:
+        elements.append(Paragraph("Diagram Komposisi Warga", styles['h2']))
+        img_buffer_komposisi = BytesIO()
+        # Menggunakan write_image untuk Plotly (membutuhkan 'kaleido')
+        fig_komposisi.write_image(img_buffer_komposisi, format='png', scale=2)
+        img_buffer_komposisi.seek(0)
+        elements.append(Image(img_buffer_komposisi, width=6*inch, height=4*inch))
+        elements.append(Spacer(1, 0.1 * inch))
+
+    # --- Grafik Partisipasi Warga ---
+    if fig_partisipasi:
+        elements.append(Paragraph("Diagram Partisipasi Warga Hadir", styles['h2']))
+        img_buffer_partisipasi = BytesIO()
+        fig_partisipasi.write_image(img_buffer_partisipasi, format='png', scale=2)
+        img_buffer_partisipasi.seek(0)
+        elements.append(Image(img_buffer_partisipasi, width=6*inch, height=4*inch))
+
     elements.append(PageBreak())
-    elements.append(Paragraph("Tren Kunjungan Warga", styles['h2']))
-    if fig_tren:
-        img_buffer_tren = BytesIO()
-        fig_tren.savefig(img_buffer_tren, format='png', dpi=300, bbox_inches='tight')
-        img_buffer_tren.seek(0)
-        elements.append(Image(img_buffer_tren, width=6*inch, height=3*inch))
     
-    elements.append(Spacer(1, 0.3 * inch))
-    elements.append(Paragraph("Data Rinci Kunjungan", styles['h2']))
+    # --- Tabel Data Rinci ---
+    elements.append(Paragraph("Data Rinci Kunjungan (Warga Hadir)", styles['h2']))
     elements.append(Spacer(1, 0.2 * inch))
     
-    table_data = [df_rinci.columns.to_list()] + df_rinci.values.tolist()
-    data_rinci_table = Table(table_data, repeatRows=1)
-    data_rinci_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.grey), ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-        ('ALIGN', (0,0), (-1,-1), 'CENTER'), ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0,0), (-1,0), 12), ('BACKGROUND', (0,1), (-1,-1), colors.beige),
-        ('GRID', (0,0), (-1,-1), 1, colors.black)
-    ]))
-    elements.append(data_rinci_table)
+    # Pastikan ada data sebelum membuat tabel
+    if not df_rinci.empty:
+        table_data = [df_rinci.columns.to_list()] + df_rinci.values.tolist()
+        data_rinci_table = Table(table_data, repeatRows=1, hAlign='LEFT')
+        data_rinci_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.darkslategray), ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), ('FONTSIZE', (0,0), (-1,0), 10),
+            ('BOTTOMPADDING', (0,0), (-1,0), 12),
+            ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+            ('GRID', (0,0), (-1,-1), 1, colors.black),
+            ('FONTSIZE', (0,1), (-1,-1), 9)
+        ]))
+        elements.append(data_rinci_table)
+    else:
+        elements.append(Paragraph("Tidak ada data kunjungan rinci untuk ditampilkan.", styles['Normal']))
 
     doc.build(elements)
     buffer.seek(0)
@@ -554,6 +576,63 @@ def page_dashboard():
             # st.divider()
             # (Sisa kode untuk tren dan PDF tidak perlu diubah)
             # ...
+
+            # --- [BLOK KODE BARU] UNTUK FITUR DOWNLOAD PDF ---
+            st.divider()
+            st.subheader("📥 Unduh Laporan")
+            
+            # 1. Siapkan semua data yang diperlukan untuk PDF
+            
+            # a. Filter
+            filters_for_pdf = {
+                'selected_date_str': selected_date.strftime('%d %B %Y'),
+                'rt': "Lingkungan (Semua RT)" if selected_wilayah == "Lingkungan (Semua RT)" else f"RT {selected_wilayah}",
+                'kategori': selected_kategori,
+                'gender': selected_gender
+            }
+
+            # b. Metrik
+            hadir_hari_ini = len(id_hadir_keseluruhan)
+            partisipasi_hari_ini = (hadir_hari_ini / total_warga_wilayah * 100) if total_warga_wilayah > 0 else 0
+            metrics_for_pdf = {
+                'total_warga': total_warga_wilayah,
+                'hadir_hari_ini': hadir_hari_ini,
+                'partisipasi_hari_ini': partisipasi_hari_ini
+            }
+
+            # c. Data Rinci (format ulang untuk laporan)
+            df_laporan_rinci = pd.DataFrame()
+            if not df_merged.empty:
+                df_laporan_rinci = df_merged[[
+                    'nama_lengkap', 'rt', 'usia', 'tensi_sistolik', 'tensi_diastolik', 
+                    'berat_badan_kg', 'gula_darah', 'kolesterol'
+                ]].copy()
+                df_laporan_rinci.rename(columns={
+                    'nama_lengkap': 'Nama Lengkap', 'rt': 'RT', 'usia': 'Usia (thn)',
+                    'tensi_sistolik': 'Sistolik', 'tensi_diastolik': 'Diastolik',
+                    'berat_badan_kg': 'Berat (kg)', 'gula_darah': 'Gula Darah',
+                    'kolesterol': 'Kolesterol'
+                }, inplace=True)
+                df_laporan_rinci['Usia (thn)'] = df_laporan_rinci['Usia (thn)'].round(1)
+
+            # 2. Hasilkan file PDF di memori
+            pdf_buffer = generate_pdf_report(
+                filters=filters_for_pdf,
+                metrics=metrics_for_pdf,
+                df_rinci=df_laporan_rinci,
+                fig_komposisi=fig_sunburst_komposisi,
+                fig_partisipasi=fig_sunburst_partisipasi
+            )
+
+            # 3. Buat tombol download
+            st.download_button(
+                label="Unduh Laporan dalam Format .PDF",
+                data=pdf_buffer,
+                file_name=f"Laporan_Posyandu_{selected_date.strftime('%Y-%m-%d')}.pdf",
+                mime="application/pdf"
+            )
+            # --- [AKHIR BLOK KODE BARU] ---
+
 
     except Exception as e:
         st.error(f"Gagal membuat laporan: {e}")
