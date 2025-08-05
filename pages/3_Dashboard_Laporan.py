@@ -135,6 +135,27 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
     else:
         elements.append(Paragraph("Tidak ada data kunjungan rinci untuk ditampilkan.", styles['Normal']))
 
+
+    # --- Tabel Data Tidak Hadir ---
+    elements.append(PageBreak())
+    elements.append(Paragraph("Data Warga Tidak Hadir", styles['h2']))
+    elements.append(Spacer(1, 0.2 * inch))
+    if df_tidak_hadir is not None and not df_tidak_hadir.empty:
+        table_data_tidak_hadir = [df_tidak_hadir.columns.to_list()] + df_tidak_hadir.values.tolist()
+        data_tidak_hadir_table = Table(table_data_tidak_hadir, repeatRows=1, hAlign='LEFT')
+        data_tidak_hadir_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.darkred), ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), ('FONTSIZE', (0,0), (-1,0), 10),
+            ('BOTTOMPADDING', (0,0), (-1,0), 12),
+            ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+            ('GRID', (0,0), (-1,-1), 1, colors.black),
+            ('FONTSIZE', (0,1), (-1,-1), 9)
+        ]))
+        elements.append(data_tidak_hadir_table)
+    else:
+        elements.append(Paragraph("Semua warga hadir atau tidak ada data tidak hadir untuk ditampilkan.", styles['Normal']))
+
     doc.build(elements)
     buffer.seek(0)
     return buffer
@@ -615,11 +636,22 @@ def page_dashboard():
                 }, inplace=True)
                 df_laporan_rinci['Usia (thn)'] = df_laporan_rinci['Usia (thn)'].round(1)
 
+            df_tidak_hadir_pdf = pd.DataFrame()
+            if not df_tidak_hadir.empty:
+                df_tidak_hadir_pdf = df_tidak_hadir[['nama_lengkap', 'rt', 'usia']].copy()
+                df_tidak_hadir_pdf.rename(columns={
+                    'nama_lengkap': 'Nama Lengkap',
+                    'rt': 'RT',
+                    'usia': 'Usia (thn)'
+                }, inplace=True)
+                df_tidak_hadir_pdf['Usia (thn)'] = df_tidak_hadir_pdf['Usia (thn)'].round(1)    
+    
             # 2. Hasilkan file PDF di memori
             pdf_buffer = generate_pdf_report(
                 filters=filters_for_pdf,
                 metrics=metrics_for_pdf,
                 df_rinci=df_laporan_rinci,
+                df_tidak_hadir=df_tidak_hadir_pdf,
                 fig_komposisi=fig_sunburst_komposisi,
                 fig_partisipasi=fig_sunburst_partisipasi
             )
