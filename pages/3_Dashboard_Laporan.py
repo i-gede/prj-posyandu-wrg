@@ -58,7 +58,7 @@ if not supabase:
     st.stop()
 
 # --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
-def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi):
+def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi, df_tidak_hadir):
     """
     Membuat laporan PDF dari data yang sudah difilter.
     Fungsi ini dimodifikasi untuk menerima gambar dari Plotly.
