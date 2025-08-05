@@ -338,11 +338,11 @@ def page_dashboard():
                 fig_sunburst_komposisi = px.sunburst(
                     df_komposisi,
                     # Urutan path diubah sesuai permintaan: Total -> Kategori Usia -> Jenis Kelamin
-                    path=['total_label', 'kategori_usia', 'jenis_kelamin'],
-                    values='count',
+                    path=['total_label', 'kategori_usia', 'jenis_kelamin'], # Menentukan jalur hierarki dari pusat ke luar
+                    values='count', # Menentukan nilai yang merepresentasikan ukuran irisan
                     title='Diagram Komposisi Warga (Total > Kategori Usia > Jenis Kelamin)',
                     # Mewarnai berdasarkan kategori usia untuk membedakan segmen utama
-                    color='kategori_usia',
+                    color='kategori_usia', # (Opsional) Memberi warna berdasarkan nilai lain
                     color_discrete_sequence=px.colors.qualitative.Pastel
                 )
                 fig_sunburst_komposisi.update_layout(margin=dict(t=50, l=25, r=25, b=25))
