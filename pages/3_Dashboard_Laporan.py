@@ -615,11 +615,27 @@ def page_dashboard():
                 }, inplace=True)
                 df_laporan_rinci['Usia (thn)'] = df_laporan_rinci['Usia (thn)'].round(1)
 
+            # d. Data Rinci tidak hadir (format ulang untuk laporan)
+            df_laporan_rinci_tidak_hadir = pd.DataFrame()
+            if not df_tidak_hadir.empty:
+                df_laporan_rinci_tidak_hadir = df_tidak_hadir[[
+                    'nama_lengkap', 'rt', 'usia', 'tensi_sistolik', 'tensi_diastolik', 
+                    'berat_badan_kg', 'gula_darah', 'kolesterol'
+                ]].copy()
+                df_laporan_rinci_tidak_hadir.rename(columns={
+                    'nama_lengkap': 'Nama Lengkap', 'rt': 'RT', 'usia': 'Usia (thn)',
+                    'tensi_sistolik': 'Sistolik', 'tensi_diastolik': 'Diastolik',
+                    'berat_badan_kg': 'Berat (kg)', 'gula_darah': 'Gula Darah',
+                    'kolesterol': 'Kolesterol'
+                }, inplace=True)
+                df_laporan_rinci_tidak_hadir['Usia (thn)'] = df_laporan_rinci_tidak_hadir['Usia (thn)'].round(1)
+
             # 2. Hasilkan file PDF di memori
             pdf_buffer = generate_pdf_report(
                 filters=filters_for_pdf,
                 metrics=metrics_for_pdf,
                 df_rinci=df_laporan_rinci,
+                df_rinci_tidak=df_laporan_rinci_tidak_hadir
                 fig_komposisi=fig_sunburst_komposisi,
                 fig_partisipasi=fig_sunburst_partisipasi
             )
