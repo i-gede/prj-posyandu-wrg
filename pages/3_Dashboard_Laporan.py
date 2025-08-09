@@ -501,8 +501,8 @@ def page_dashboard():
                         # TAMBAHKAN BARIS INI untuk menyimpan figurnya
                         donut_figs_for_pdf.append(fig)
                     
-                    #col_idx = (col_idx + 1) % 4
-                    col_idx += 1
+                    col_idx = (col_idx + 1) % 4
+                    #col_idx += 1
             
             # Tambahkan kolom kategori usia ke dataframe gabungan untuk filtering di bawah
             if not df_merged.empty:
