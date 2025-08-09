@@ -88,6 +88,15 @@ def page_manajemen_warga():
             return
 
         df_warga_tampil = pd.DataFrame(response_tampil.data)
+        # Ganti nama kolom untuk tampilan
+        df_warga_tampil = df_warga_tampil.rename(columns={
+            "nik": "NIK",
+            "nama_lengkap": "Nama Lengkap",
+            "jenis_kelamin": "Jenis Kelamin"
+            "tanggal_lahir": "Tanggal Lahir",
+            "rt": "RT",
+            "blok": "Blok"
+        })
         st.dataframe(df_warga_tampil)
 
         response = supabase.table("warga").select("*").order("created_at", desc=True).execute()
@@ -109,7 +118,9 @@ def page_manajemen_warga():
 
             with st.expander("✏️ Edit Data Diri Warga"):
                 with st.form("edit_warga_form"):
+                    edit_nik = st.text_input("NIK", value=selected_warga_data['nik'])
                     edit_nama = st.text_input("Nama Lengkap", value=selected_warga_data['nama_lengkap'])
+                    edit_gender = st.text_input("Jenis Kelamin", value=selected_warga_data['jenis_kelamin'])
                     
                     col_edit1, col_edit2 = st.columns(2)
                     with col_edit1: edit_rt = st.text_input("RT", value=selected_warga_data.get('rt', ''))
@@ -123,6 +134,7 @@ def page_manajemen_warga():
                     if st.form_submit_button("Simpan Perubahan Data Diri"):
                         try:
                             update_data = {
+                                "nik": edit_nik, "jenis_kelamin": str(edit_gender), 
                                 "nama_lengkap": edit_nama, "tanggal_lahir": str(edit_tgl_lahir), 
                                 "alamat": edit_alamat, "telepon": edit_telepon,
                                 "rt": edit_rt, "blok": edit_blok
