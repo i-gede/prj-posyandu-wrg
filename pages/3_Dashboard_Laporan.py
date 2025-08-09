@@ -58,89 +58,111 @@ def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#
     # --- 
 
 # --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
-def generate_pdf_report(
-    filters,
-    df_hadir,
-    df_tidak_hadir,
-    kategori_usia_defs,
-    selected_date,
-    fig_partisipasi=None,
-    fig_usia=None,
-    fig_jk=None
-):
-    buffer_pdf = io.BytesIO()
-    doc = SimpleDocTemplate(buffer_pdf, pagesize=A4)
+def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi, df_tidak_hadir):
+    """
+    Membuat laporan PDF dari data yang sudah difilter.
+    Fungsi ini dimodifikasi untuk menerima gambar dari Plotly.
+    """
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
+    
     styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
     elements = []
 
-    # Judul
-    elements.append(Paragraph(f"Laporan Kehadiran Posyandu - {selected_date.strftime('%d %B %Y')}", styles['Title']))
-    elements.append(Spacer(1, 12))
+    # --- Header ---
+    elements.append(Paragraph("Laporan Posyandu Mawar - KBU", styles['h1']))
+    elements.append(Spacer(1, 0.2 * inch))
+    
+    filter_text = f"<b>Filter Laporan:</b><br/>- Tanggal: {filters['selected_date_str']}<br/>- Wilayah: {filters['rt']}<br/>- Kategori Usia: {filters['kategori']}<br/>- Jenis Kelamin: {filters['gender']}"
+    elements.append(Paragraph(filter_text, styles['Normal']))
+    elements.append(Spacer(1, 0.3 * inch))
 
-    # ===== Data Hadir =====
-    elements.append(Paragraph(f"Data Warga Hadir pada {selected_date.strftime('%d %B %Y')}", styles['Heading2']))
-    ada_data_hadir = False
-    if not df_hadir.empty:
-        for nama_kategori, _ in kategori_usia_defs.items():
-            df_kat_hadir = df_hadir[df_hadir['kategori_usia'] == nama_kategori]
-            if not df_kat_hadir.empty:
-                ada_data_hadir = True
-                elements.append(Paragraph(f"Hadir: {nama_kategori}", styles['Heading3']))
-                df_display = df_kat_hadir.reset_index(drop=True)
-                df_display.index += 1
-                df_display = df_display[['nama_lengkap', 'rt', 'blok']]
-                df_display.columns = ['Nama Lengkap', 'RT', 'Blok']
+    # --- Ringkasan Metrik ---
+    elements.append(Paragraph("Ringkasan Laporan", styles['h2']))
+    metric_data = [
+        ['Total Warga (sesuai filter)', f": {metrics['total_warga']}"],
+        ['Jumlah Kunjungan (Hadir)', f": {metrics['hadir_hari_ini']}"],
+        ['Tingkat Partisipasi', f": {metrics['partisipasi_hari_ini']:.1f}%"]
+    ]
+    metric_table = Table(metric_data, colWidths=[2.5*inch, 2.5*inch])
+    metric_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE')
+    ]))
+    elements.append(metric_table)
+    elements.append(Spacer(1, 0.3 * inch))
 
-                data_table = [df_display.columns.tolist()] + df_display.values.tolist()
-                table = Table(data_table, repeatRows=1)
-                table.setStyle(TableStyle([
-                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold')
-                ]))
-                elements.append(table)
-                elements.append(Spacer(1, 12))
-    if not ada_data_hadir:
-        elements.append(Paragraph("Tidak ada data warga yang hadir.", styles['Normal']))
+    # --- Grafik Komposisi Warga ---
+    if fig_komposisi:
+        elements.append(Paragraph("Diagram Komposisi Warga", styles['h2']))
+        img_buffer_komposisi = BytesIO()
+        # Menggunakan write_image untuk Plotly (membutuhkan 'kaleido')
+        fig_komposisi.write_image(img_buffer_komposisi, format='png', scale=2)
+        img_buffer_komposisi.seek(0)
+        elements.append(Image(img_buffer_komposisi, width=6*inch, height=4*inch))
+        elements.append(Spacer(1, 0.1 * inch))
 
-    elements.append(Spacer(1, 20))
+    # --- Grafik Partisipasi Warga ---
+    if fig_partisipasi:
+        elements.append(Paragraph("Diagram Partisipasi Warga Hadir", styles['h2']))
+        img_buffer_partisipasi = BytesIO()
+        fig_partisipasi.write_image(img_buffer_partisipasi, format='png', scale=2)
+        img_buffer_partisipasi.seek(0)
+        elements.append(Image(img_buffer_partisipasi, width=6*inch, height=4*inch))
 
-    # ===== Data Tidak Hadir =====
-    elements.append(Paragraph(f"Data Warga Tidak Hadir pada {selected_date.strftime('%d %B %Y')}", styles['Heading2']))
-    ada_data_tidak_hadir = False
-    if not df_tidak_hadir.empty:
-        for nama_kategori, _ in kategori_usia_defs.items():
-            df_kat_tidak = df_tidak_hadir[df_tidak_hadir['kategori_usia'] == nama_kategori]
-            if not df_kat_tidak.empty:
-                ada_data_tidak_hadir = True
-                elements.append(Paragraph(f"Tidak Hadir: {nama_kategori}", styles['Heading3']))
-                df_display = df_kat_tidak.reset_index(drop=True)
-                df_display.index += 1
-                df_display = df_display[['nama_lengkap', 'rt', 'usia']]
-                df_display.columns = ['Nama Lengkap', 'RT', 'Usia (thn)']
-                df_display['Usia (thn)'] = df_display['Usia (thn)'].round(1)
+    elements.append(PageBreak())
+    
+    # --- Tabel Data Rinci ---
+    elements.append(Paragraph("Data Rinci Kunjungan (Warga Hadir)", styles['h2']))
+    elements.append(Spacer(1, 0.2 * inch))
+    
+    # Pastikan ada data sebelum membuat tabel
+    if not df_rinci.empty:
+        df_rinci = df_rinci.copy()
+        df_rinci.insert(0, "No", range(1, len(df_rinci) + 1))  # Tambahkan nomor urut
+        table_data = [df_rinci.columns.to_list()] + df_rinci.values.tolist()
+        data_rinci_table = Table(table_data, repeatRows=1, hAlign='LEFT')
+        data_rinci_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.darkslategray), ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), ('FONTSIZE', (0,0), (-1,0), 10),
+            ('BOTTOMPADDING', (0,0), (-1,0), 12),
+            ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+            ('GRID', (0,0), (-1,-1), 1, colors.black),
+            ('FONTSIZE', (0,1), (-1,-1), 9)
+        ]))
+        elements.append(data_rinci_table)
+    else:
+        elements.append(Paragraph("Tidak ada data kunjungan rinci untuk ditampilkan.", styles['Normal']))
 
-                data_table = [df_display.columns.tolist()] + df_display.values.tolist()
-                table = Table(data_table, repeatRows=1)
-                table.setStyle(TableStyle([
-                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold')
-                ]))
-                elements.append(table)
-                elements.append(Spacer(1, 12))
-    if not ada_data_tidak_hadir:
-        elements.append(Paragraph("Semua warga hadir atau tidak ada data untuk ditampilkan.", styles['Normal']))
 
-    # Build PDF
+    # --- Tabel Data Tidak Hadir ---
+    elements.append(PageBreak())
+    elements.append(Paragraph("Data Warga Tidak Hadir", styles['h2']))
+    elements.append(Spacer(1, 0.2 * inch))
+    if df_tidak_hadir is not None and not df_tidak_hadir.empty:
+        df_tidak_hadir = df_tidak_hadir.copy()
+        df_tidak_hadir.insert(0, "No", range(1, len(df_tidak_hadir) + 1))  # Tambahkan nomor urut
+        table_data_tidak_hadir = [df_tidak_hadir.columns.to_list()] + df_tidak_hadir.values.tolist()
+        data_tidak_hadir_table = Table(table_data_tidak_hadir, repeatRows=1, hAlign='LEFT')
+        data_tidak_hadir_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.darkred), ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), ('FONTSIZE', (0,0), (-1,0), 10),
+            ('BOTTOMPADDING', (0,0), (-1,0), 12),
+            ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+            ('GRID', (0,0), (-1,-1), 1, colors.black),
+            ('FONTSIZE', (0,1), (-1,-1), 9)
+        ]))
+        elements.append(data_tidak_hadir_table)
+    else:
+        elements.append(Paragraph("Semua warga hadir atau tidak ada data tidak hadir untuk ditampilkan.", styles['Normal']))
+
     doc.build(elements)
-    buffer_pdf.seek(0)
-    return buffer_pdf
-
+    buffer.seek(0)
+    return buffer
 
 # Fungsi untuk menentukan kategori usia, digunakan di banyak tempat
 def get_kategori(usia):
