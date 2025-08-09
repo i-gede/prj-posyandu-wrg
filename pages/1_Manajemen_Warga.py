@@ -9,10 +9,10 @@ from datetime import date, datetime
 # --- KONEKSI & KEAMANAN ---
 st.set_page_config(page_title="Manajemen Warga", page_icon="👨‍👩‍👧‍👦", layout="wide")
 
-# Blokir akses jika pengguna belum login
-if not st.session_state.get("authenticated", False):
-    st.error("🔒 Anda harus login untuk mengakses halaman ini.")
-    st.stop()
+# # Blokir akses jika pengguna belum login
+# if not st.session_state.get("authenticated", False):
+#     st.error("🔒 Anda harus login untuk mengakses halaman ini.")
+#     st.stop()
 
 # --- KONEKSI & KEAMANAN ---
 if not st.session_state.get("authenticated", False):

@@ -15,6 +15,18 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
 
+# --- KONEKSI & KEAMANAN ---
+st.set_page_config(page_title="Dashboard & Laporan", page_icon="📈", layout="wide")
+
+if not st.session_state.get("authenticated", False):
+    st.error("🔒 Anda harus login untuk mengakses halaman ini.")
+    st.stop()
+
+supabase = st.session_state.get('supabase_client')
+if not supabase:
+    st.error("Koneksi Supabase tidak ditemukan. Silakan login kembali.")
+    st.stop()
+
 # --- FUNGSI PEMBUAT GRAFIK ---
 def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#FFB6C1'):
     """Membuat dan mengembalikan objek figure Matplotlib untuk grafik gender."""
@@ -44,18 +56,6 @@ def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#
     fig.tight_layout(pad=0)
     return fig
     # --- 
-
-# --- KONEKSI & KEAMANAN ---
-st.set_page_config(page_title="Dashboard & Laporan", page_icon="📈", layout="wide")
-
-if not st.session_state.get("authenticated", False):
-    st.error("🔒 Anda harus login untuk mengakses halaman ini.")
-    st.stop()
-
-supabase = st.session_state.get('supabase_client')
-if not supabase:
-    st.error("Koneksi Supabase tidak ditemukan. Silakan login kembali.")
-    st.stop()
 
 # --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
 def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi, df_tidak_hadir):

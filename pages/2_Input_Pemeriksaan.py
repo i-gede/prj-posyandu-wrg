@@ -8,9 +8,9 @@ from datetime import date
 # --- KONEKSI & KEAMANAN ---
 st.set_page_config(page_title="Input Pemeriksaan", page_icon="🗓️", layout="wide")
 
-if not st.session_state.get("authenticated", False):
-    st.error("🔒 Anda harus login untuk mengakses halaman ini.")
-    st.stop()
+# if not st.session_state.get("authenticated", False):
+#     st.error("🔒 Anda harus login untuk mengakses halaman ini.")
+#     st.stop()
 
 # --- KONEKSI & KEAMANAN ---
 if not st.session_state.get("authenticated", False):
