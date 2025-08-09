@@ -58,42 +58,47 @@ def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#
     # --- 
 
 # --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
-def generate_pdf_report(df_hadir, df_tidak_hadir, kategori_usia_defs, selected_date):
+def generate_pdf_report(
+    filters,
+    df_hadir,
+    df_tidak_hadir,
+    kategori_usia_defs,
+    selected_date,
+    fig_partisipasi=None,
+    fig_usia=None,
+    fig_jk=None
+):
     buffer_pdf = io.BytesIO()
     doc = SimpleDocTemplate(buffer_pdf, pagesize=A4)
     styles = getSampleStyleSheet()
     elements = []
 
-    # Judul Laporan
+    # Judul
     elements.append(Paragraph(f"Laporan Kehadiran Posyandu - {selected_date.strftime('%d %B %Y')}", styles['Title']))
     elements.append(Spacer(1, 12))
 
-    # ========================
-    # Bagian Data Hadir
-    # ========================
+    # ===== Data Hadir =====
     elements.append(Paragraph(f"Data Warga Hadir pada {selected_date.strftime('%d %B %Y')}", styles['Heading2']))
     ada_data_hadir = False
     if not df_hadir.empty:
         for nama_kategori, _ in kategori_usia_defs.items():
-            df_kategori_hadir = df_hadir[df_hadir['kategori_usia'] == nama_kategori]
-            if not df_kategori_hadir.empty:
+            df_kat_hadir = df_hadir[df_hadir['kategori_usia'] == nama_kategori]
+            if not df_kat_hadir.empty:
                 ada_data_hadir = True
                 elements.append(Paragraph(f"Hadir: {nama_kategori}", styles['Heading3']))
-                df_display_hadir = df_kategori_hadir.reset_index(drop=True)
-                df_display_hadir.index += 1  # Mulai nomor dari 1
-                df_display_hadir = df_display_hadir[['nama_lengkap', 'rt', 'blok']]
+                df_display = df_kat_hadir.reset_index(drop=True)
+                df_display.index += 1
+                df_display = df_display[['nama_lengkap', 'rt', 'blok']]
+                df_display.columns = ['Nama Lengkap', 'RT', 'Blok']
 
-                # Ubah nama kolom agar rapi
-                df_display_hadir.columns = ['Nama Lengkap', 'RT', 'Blok']
-
-                data_table = [df_display_hadir.columns.tolist()] + df_display_hadir.values.tolist()
+                data_table = [df_display.columns.tolist()] + df_display.values.tolist()
                 table = Table(data_table, repeatRows=1)
                 table.setStyle(TableStyle([
-                    ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-                    ('BACKGROUND', (0,0), (-1,0), colors.grey),
-                    ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-                    ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-                    ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold')
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold')
                 ]))
                 elements.append(table)
                 elements.append(Spacer(1, 12))
@@ -102,33 +107,29 @@ def generate_pdf_report(df_hadir, df_tidak_hadir, kategori_usia_defs, selected_d
 
     elements.append(Spacer(1, 20))
 
-    # ========================
-    # Bagian Data Tidak Hadir
-    # ========================
+    # ===== Data Tidak Hadir =====
     elements.append(Paragraph(f"Data Warga Tidak Hadir pada {selected_date.strftime('%d %B %Y')}", styles['Heading2']))
     ada_data_tidak_hadir = False
     if not df_tidak_hadir.empty:
         for nama_kategori, _ in kategori_usia_defs.items():
-            df_kategori_tidak = df_tidak_hadir[df_tidak_hadir['kategori_usia'] == nama_kategori]
-            if not df_kategori_tidak.empty:
+            df_kat_tidak = df_tidak_hadir[df_tidak_hadir['kategori_usia'] == nama_kategori]
+            if not df_kat_tidak.empty:
                 ada_data_tidak_hadir = True
                 elements.append(Paragraph(f"Tidak Hadir: {nama_kategori}", styles['Heading3']))
-                df_display_tidak = df_kategori_tidak.reset_index(drop=True)
-                df_display_tidak.index += 1  # Mulai nomor dari 1
-                df_display_tidak = df_display_tidak[['nama_lengkap', 'rt', 'usia']]
+                df_display = df_kat_tidak.reset_index(drop=True)
+                df_display.index += 1
+                df_display = df_display[['nama_lengkap', 'rt', 'usia']]
+                df_display.columns = ['Nama Lengkap', 'RT', 'Usia (thn)']
+                df_display['Usia (thn)'] = df_display['Usia (thn)'].round(1)
 
-                # Ubah nama kolom agar rapi
-                df_display_tidak.columns = ['Nama Lengkap', 'RT', 'Usia (thn)']
-                df_display_tidak['Usia (thn)'] = df_display_tidak['Usia (thn)'].round(1)
-
-                data_table = [df_display_tidak.columns.tolist()] + df_display_tidak.values.tolist()
+                data_table = [df_display.columns.tolist()] + df_display.values.tolist()
                 table = Table(data_table, repeatRows=1)
                 table.setStyle(TableStyle([
-                    ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-                    ('BACKGROUND', (0,0), (-1,0), colors.grey),
-                    ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-                    ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-                    ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold')
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold')
                 ]))
                 elements.append(table)
                 elements.append(Spacer(1, 12))
@@ -139,6 +140,7 @@ def generate_pdf_report(df_hadir, df_tidak_hadir, kategori_usia_defs, selected_d
     doc.build(elements)
     buffer_pdf.seek(0)
     return buffer_pdf
+
 
 # Fungsi untuk menentukan kategori usia, digunakan di banyak tempat
 def get_kategori(usia):
