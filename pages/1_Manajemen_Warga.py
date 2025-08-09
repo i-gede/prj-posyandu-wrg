@@ -80,15 +80,22 @@ def page_manajemen_warga():
 
     # --- Menampilkan dan Mengelola Data Warga yang Ada ---
     st.subheader("Daftar Warga Terdaftar")
+
     try:
-        # response = supabase.table("warga").select("*").order("created_at", desc=True).execute()
-        response = supabase.table("warga").select("nik, nama_lengkap, tanggal_lahir, jenis_kelamin, rt, blok").order("created_at", desc=True).execute()
+        response_tampil = supabase.table("warga").select("nik, nama_lengkap, tanggal_lahir, jenis_kelamin, rt, blok").order("created_at", desc=True).execute()
+        if not response_tampil.data:
+            st.info("Belum ada data warga yang terdaftar.")
+            return
+
+        df_warga_tampil = pd.DataFrame(response_tampil.data)
+        st.dataframe(df_warga_tampil)
+
+        response = supabase.table("warga").select("*").order("created_at", desc=True).execute()
         if not response.data:
             st.info("Belum ada data warga yang terdaftar.")
             return
 
         df_warga = pd.DataFrame(response.data)
-        st.dataframe(df_warga)
 
         df_warga['display_name'] = df_warga['nama_lengkap'] + " (RT-" + df_warga['rt'].astype(str) + ", BLOK-" + df_warga['blok'].astype(str) + ")"
         
