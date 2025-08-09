@@ -91,6 +91,16 @@ def page_manajemen_warga():
 
         # Tabel ringkas (hanya kolom tertentu)
         df_warga_tampil = df_warga[["nik", "nama_lengkap", "tanggal_lahir", "jenis_kelamin", "rt"]]
+
+        # Ganti nama kolom untuk tampilan
+        df_warga_tampil = df_warga_tampil.rename(columns={
+            "nik": "NIK",
+            "nama_lengkap": "Nama Lengkap",
+            "tanggal_lahir": "Tanggal Lahir",
+            "jenis_kelamin": "Jenis Kelamin",
+            "rt": "RT",
+            "blok": "Blok"
+        })
         st.dataframe(df_warga_tampil)
 
         df_warga['display_name'] = df_warga['nama_lengkap'] + " (RT-" + df_warga['rt'].astype(str) + ", BLOK-" + df_warga['blok'].astype(str) + ")"
