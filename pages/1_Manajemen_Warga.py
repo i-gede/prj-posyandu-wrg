@@ -87,7 +87,11 @@ def page_manajemen_warga():
             return
 
         df_warga = pd.DataFrame(response.data)
-        st.dataframe(df_warga)
+        # st.dataframe(df_warga)
+
+        # Tabel ringkas (hanya kolom tertentu)
+        df_warga_tampil = df_warga[["nik", "nama_lengkap", "tanggal_lahir", "jenis_kelamin", "rt"]]
+        st.dataframe(df_warga_tampil)
 
         df_warga['display_name'] = df_warga['nama_lengkap'] + " (RT-" + df_warga['rt'].astype(str) + ", BLOK-" + df_warga['blok'].astype(str) + ")"
         
