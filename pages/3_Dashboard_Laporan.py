@@ -100,10 +100,11 @@ def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#
 # --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
 # --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
 # --- FUNGSI PEMBANTU PDF (VERSI FINAL DENGAN TABEL KOMPOSISI) ---
+# --- FUNGSI PEMBANTU PDF (VERSI FINAL DENGAN TOTAL ROW & URUTAN BARU) ---
 def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi, df_tidak_hadir, semua_kategori_defs, data_komposisi):
     """
     Membuat laporan PDF dari data yang sudah difilter.
-    Fungsi ini sekarang juga menyertakan tabel rincian komposisi warga.
+    Fungsi ini menyertakan total row pada tabel komposisi dan urutan elemen yang disesuaikan.
     """
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
@@ -135,15 +136,36 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE')
     ]))
     elements.append(metric_table)
-    elements.append(Spacer(1, 0.3 * inch))
+    elements.append(Spacer(1, 0.2 * inch))
 
-    # --- [TAMBAHAN BARU] Tabel Rincian Komposisi Warga ---
+    # --- [PERUBAHAN 2] Urutan diubah: Diagram dulu, baru tabel ---
+    # Pindah ke halaman baru jika ada grafik
+    if fig_komposisi or fig_partisipasi:
+         elements.append(PageBreak())
+
+    # Tampilkan Diagram Komposisi Warga
+    if fig_komposisi:
+        elements.append(Paragraph("Diagram Komposisi Warga", styles['h2']))
+        img_buffer_komposisi = BytesIO()
+        fig_komposisi.write_image(img_buffer_komposisi, format='png', scale=2)
+        img_buffer_komposisi.seek(0)
+        elements.append(Image(img_buffer_komposisi, width=6*inch, height=4.3*inch))
+        elements.append(Spacer(1, 0.1 * inch))
+
+    # Tampilkan Tabel Rincian Komposisi Warga (setelah diagramnya)
     elements.append(Paragraph("Rincian Komposisi Warga", styles['h2']))
     elements.append(Spacer(1, 0.2 * inch))
+    
+    # --- [PERUBAHAN 1] Hitung total untuk baris terakhir ---
+    total_keseluruhan = sum(row[1] for row in data_komposisi)
+    total_laki = sum(row[2] for row in data_komposisi)
+    total_perempuan = sum(row[3] for row in data_komposisi)
+    total_row = ['Total Keseluruhan', total_keseluruhan, total_laki, total_perempuan]
     
     # Siapkan header dan gabungkan dengan data
     table_data_komposisi = [['Kategori Usia', 'Total', 'Laki-laki', 'Perempuan']]
     table_data_komposisi.extend(data_komposisi)
+    table_data_komposisi.append(total_row) # Tambahkan baris total ke data tabel
 
     komposisi_table = Table(table_data_komposisi, colWidths=[2.5*inch, 0.8*inch, 1*inch, 1*inch], hAlign='LEFT')
     komposisi_table.setStyle(TableStyle([
@@ -151,37 +173,26 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
         ('ALIGN', (0,0), (-1,-1), 'LEFT'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), ('FONTSIZE', (0,0), (-1,0), 10),
         ('BOTTOMPADDING', (0,0), (-1,0), 12),
-        ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+        ('BACKGROUND', (0,1), (-1,-2), colors.beige), # Latar belakang untuk baris data
+        ('BACKGROUND', (0,-1), (-1,-1), colors.lightgrey), # Latar belakang untuk baris total
         ('GRID', (0,0), (-1,-1), 1, colors.black),
-        ('FONTSIZE', (0,1), (-1,-1), 9)
+        ('FONTSIZE', (0,1), (-1,-1), 9),
+        ('FONTNAME', (0,-1), (-1,-1), 'Helvetica-Bold') # Membuat baris terakhir (total) menjadi tebal
     ]))
     elements.append(komposisi_table)
     elements.append(Spacer(1, 0.2 * inch))
-    # --- Akhir Tambahan Baru ---
-
-
-    # --- Grafik Komposisi & Partisipasi ---
-    if fig_komposisi or fig_partisipasi:
-         elements.append(PageBreak())
-
-    if fig_komposisi:
-        elements.append(Paragraph("Diagram Komposisi Warga", styles['h2']))
-        img_buffer_komposisi = BytesIO()
-        fig_komposisi.write_image(img_buffer_komposisi, format='png', scale=2)
-        img_buffer_komposisi.seek(0)
-        elements.append(Image(img_buffer_komposisi, width=6*inch, height=4*inch))
-        elements.append(Spacer(1, 0.1 * inch))
-
+    
+    # Tampilkan Diagram Partisipasi Warga
     if fig_partisipasi:
         elements.append(Paragraph("Diagram Partisipasi Warga Hadir", styles['h2']))
         img_buffer_partisipasi = BytesIO()
         fig_partisipasi.write_image(img_buffer_partisipasi, format='png', scale=2)
         img_buffer_partisipasi.seek(0)
-        elements.append(Image(img_buffer_partisipasi, width=6*inch, height=4*inch))
+        elements.append(Image(img_buffer_partisipasi, width=6*inch, height=4.3*inch))
 
     elements.append(PageBreak())
     
-    # --- [MODIFIKASI] Tabel Data Rinci Kunjungan (Warga Hadir) per Kategori ---
+    # --- Tabel Data Rinci Kunjungan (Warga Hadir) per Kategori ---
     elements.append(Paragraph("Data Rinci Kunjungan (Warga Hadir)", styles['h2']))
     elements.append(Spacer(1, 0.2 * inch))
     
@@ -218,7 +229,7 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
     if not ada_data_hadir:
         elements.append(Paragraph("Tidak ada data kunjungan rinci untuk ditampilkan.", styles['Normal']))
 
-    # --- [MODIFIKASI] Tabel Data Warga Tidak Hadir per Kategori ---
+    # --- Tabel Data Warga Tidak Hadir per Kategori ---
     elements.append(PageBreak())
     elements.append(Paragraph("Data Warga Tidak Hadir", styles['h2']))
     elements.append(Spacer(1, 0.2 * inch))
