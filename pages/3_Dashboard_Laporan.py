@@ -99,10 +99,11 @@ def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#
 
 # --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
 # --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
-def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi, df_tidak_hadir, semua_kategori_defs):
+# --- FUNGSI PEMBANTU PDF (VERSI FINAL DENGAN TABEL KOMPOSISI) ---
+def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi, df_tidak_hadir, semua_kategori_defs, data_komposisi):
     """
     Membuat laporan PDF dari data yang sudah difilter.
-    Fungsi ini dimodifikasi untuk membuat tabel terpisah per kategori usia.
+    Fungsi ini sekarang juga menyertakan tabel rincian komposisi warga.
     """
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
@@ -136,13 +137,39 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
     elements.append(metric_table)
     elements.append(Spacer(1, 0.3 * inch))
 
+    # --- [TAMBAHAN BARU] Tabel Rincian Komposisi Warga ---
+    elements.append(Paragraph("Rincian Komposisi Warga", styles['h2']))
+    elements.append(Spacer(1, 0.2 * inch))
+    
+    # Siapkan header dan gabungkan dengan data
+    table_data_komposisi = [['Kategori Usia', 'Total', 'Laki-laki', 'Perempuan']]
+    table_data_komposisi.extend(data_komposisi)
+
+    komposisi_table = Table(table_data_komposisi, colWidths=[2.5*inch, 0.8*inch, 1*inch, 1*inch], hAlign='LEFT')
+    komposisi_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.lightblue), ('TEXTCOLOR', (0,0), (-1,0), colors.black),
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), ('FONTSIZE', (0,0), (-1,0), 10),
+        ('BOTTOMPADDING', (0,0), (-1,0), 12),
+        ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+        ('GRID', (0,0), (-1,-1), 1, colors.black),
+        ('FONTSIZE', (0,1), (-1,-1), 9)
+    ]))
+    elements.append(komposisi_table)
+    elements.append(Spacer(1, 0.2 * inch))
+    # --- Akhir Tambahan Baru ---
+
+
     # --- Grafik Komposisi & Partisipasi ---
+    if fig_komposisi or fig_partisipasi:
+         elements.append(PageBreak())
+
     if fig_komposisi:
         elements.append(Paragraph("Diagram Komposisi Warga", styles['h2']))
         img_buffer_komposisi = BytesIO()
         fig_komposisi.write_image(img_buffer_komposisi, format='png', scale=2)
         img_buffer_komposisi.seek(0)
-        elements.append(Image(img_buffer_komposisi, width=6*inch, height=4.3*inch))
+        elements.append(Image(img_buffer_komposisi, width=6*inch, height=4*inch))
         elements.append(Spacer(1, 0.1 * inch))
 
     if fig_partisipasi:
@@ -150,7 +177,7 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
         img_buffer_partisipasi = BytesIO()
         fig_partisipasi.write_image(img_buffer_partisipasi, format='png', scale=2)
         img_buffer_partisipasi.seek(0)
-        elements.append(Image(img_buffer_partisipasi, width=6*inch, height=4.3*inch))
+        elements.append(Image(img_buffer_partisipasi, width=6*inch, height=4*inch))
 
     elements.append(PageBreak())
     
@@ -170,9 +197,7 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
             elements.append(Paragraph(f"Kategori: {nama_kategori}", styles['H3_Bold']))
             elements.append(Spacer(1, 0.1 * inch))
             
-            # Siapkan data untuk tabel
             df_display = df_kategori.copy()
-            # Hapus kolom kategori karena sudah jadi judul dan tambahkan Nomor
             df_display = df_display.drop(columns=['kategori_usia'])
             df_display.insert(0, "No", range(1, len(df_display) + 1))
             
@@ -711,8 +736,8 @@ def page_dashboard():
                         fig_komposisi=fig_sunburst_komposisi if not df_komposisi.empty else None,
                         fig_partisipasi=fig_sunburst_partisipasi if not df_partisipasi.empty else None,
                         df_tidak_hadir=df_tidak_hadir_pdf[kolom_tidak_hadir_pdf],
-                        semua_kategori_defs=kategori_usia_defs # <-- Argumen baru ditambahkan
-                        #data_komposisi=baris_demografi # <-- TAMBAHKAN BARIS INI
+                        semua_kategori_defs=kategori_usia_defs, # <-- Argumen baru ditambahkan
+                        data_komposisi=baris_demografi # <-- TAMBAHKAN BARIS INI
                     )
                     st.download_button(
                         label="✅ Laporan Siap! Klik untuk mengunduh",
