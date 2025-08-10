@@ -142,7 +142,7 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
         img_buffer_komposisi = BytesIO()
         fig_komposisi.write_image(img_buffer_komposisi, format='png', scale=2)
         img_buffer_komposisi.seek(0)
-        elements.append(Image(img_buffer_komposisi, width=6*inch, height=4*inch))
+        elements.append(Image(img_buffer_komposisi, width=6*inch, height=6*inch))
         elements.append(Spacer(1, 0.1 * inch))
 
     if fig_partisipasi:
@@ -150,7 +150,7 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
         img_buffer_partisipasi = BytesIO()
         fig_partisipasi.write_image(img_buffer_partisipasi, format='png', scale=2)
         img_buffer_partisipasi.seek(0)
-        elements.append(Image(img_buffer_partisipasi, width=6*inch, height=4*inch))
+        elements.append(Image(img_buffer_partisipasi, width=6*inch, height=6*inch))
 
     elements.append(PageBreak())
     
@@ -712,6 +712,7 @@ def page_dashboard():
                         fig_partisipasi=fig_sunburst_partisipasi if not df_partisipasi.empty else None,
                         df_tidak_hadir=df_tidak_hadir_pdf[kolom_tidak_hadir_pdf],
                         semua_kategori_defs=kategori_usia_defs # <-- Argumen baru ditambahkan
+                        #data_komposisi=baris_demografi # <-- TAMBAHKAN BARIS INI
                     )
                     st.download_button(
                         label="✅ Laporan Siap! Klik untuk mengunduh",
