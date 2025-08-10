@@ -27,6 +27,46 @@ if not supabase:
     st.error("Koneksi Supabase tidak ditemukan. Silakan login kembali.")
     st.stop()
 
+def tampilkan_data_per_kategori(dataframe, kategori_filter, semua_kategori_defs, kolom_tampil, judul_prefix=""):
+    """
+    Fungsi bantuan untuk menampilkan DataFrame dalam Streamlit, 
+    dikelompokkan berdasarkan kategori usia yang dipilih.
+
+    Args:
+        dataframe (pd.DataFrame): DataFrame sumber (bisa data hadir atau tidak hadir).
+        kategori_filter (str): Kategori yang dipilih dari filter Streamlit.
+        semua_kategori_defs (dict): Definisi semua kategori usia.
+        kolom_tampil (list): Daftar nama kolom yang ingin ditampilkan.
+        judul_prefix (str): Teks awalan untuk judul setiap kategori (misal: "Hadir: ").
+
+    Returns:
+        bool: True jika ada data yang ditampilkan, False jika tidak.
+    """
+    ada_data_yang_ditampilkan = False
+
+    # Jika pengguna memilih untuk menampilkan semua kategori
+    if kategori_filter == "Tampilkan Semua":
+        for nama_kategori, _ in semua_kategori_defs.items():
+            df_kategori = dataframe[dataframe['kategori_usia'] == nama_kategori]
+            if not df_kategori.empty:
+                ada_data_yang_ditampilkan = True
+                st.markdown(f"#### {judul_prefix}{nama_kategori}")
+                df_display = df_kategori.reset_index(drop=True)
+                df_display.index += 1  # Indeks mulai dari 1
+                st.dataframe(df_display[kolom_tampil], use_container_width=True)
+    
+    # Jika pengguna memilih satu kategori spesifik
+    else:
+        df_kategori = dataframe[dataframe['kategori_usia'] == kategori_filter]
+        if not df_kategori.empty:
+            ada_data_yang_ditampilkan = True
+            st.markdown(f"#### {judul_prefix}{kategori_filter}")
+            df_display = df_kategori.reset_index(drop=True)
+            df_display.index += 1  # Indeks mulai dari 1
+            st.dataframe(df_display[kolom_tampil], use_container_width=True)
+            
+    return ada_data_yang_ditampilkan
+
 # --- FUNGSI PEMBUAT GRAFIK ---
 def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#FFB6C1'):
     """Membuat dan mengembalikan objek figure Matplotlib untuk grafik gender."""
@@ -531,39 +571,32 @@ def page_dashboard():
             
             st.divider()
 
+            # --- BLOK DATA WARGA HADIR (Sudah Rapi) ---
             with st.expander("Lihat Data Rinci Warga yang Hadir Posyandu"):
-
                 st.subheader(f"Data Rinci Warga yang Hadir pada {selected_date.strftime('%d %B %Y')}")
                 
-                ada_data_kunjungan = False
-                if selected_kategori == "Tampilkan Semua":
-                    for nama_kategori, _ in kategori_usia_defs.items():
-                        df_kategori = df_merged[df_merged['kategori_usia'] == nama_kategori]
-                        if not df_kategori.empty:
-                            ada_data_kunjungan = True
-                            st.markdown(f"#### {nama_kategori}")
-                            df_display = df_kategori.reset_index(drop=True)
-                            df_display.index += 1 # Membuat indeks mulai dari 1
-                            st.dataframe(df_display[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']], use_container_width=True)
-                else:
-                    df_kategori = df_merged[df_merged['kategori_usia'] == selected_kategori]
-                    if not df_kategori.empty:
-                        ada_data_kunjungan = True
-                        st.markdown(f"#### Menampilkan Kategori: {selected_kategori}")
-                        df_display = df_kategori.reset_index(drop=True)
-                        df_display.index += 1 # Membuat indeks mulai dari 1
-                        st.dataframe(df_display[['nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']], use_container_width=True)
+                # Definisikan kolom yang ingin ditampilkan untuk warga yang hadir
+                kolom_hadir = [
+                    'nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 
+                    'berat_badan_kg', 'gula_darah', 'kolesterol'
+                ]
+                
+                # Panggil fungsi bantuan untuk menampilkan data
+                ada_data_kunjungan = tampilkan_data_per_kategori(
+                    dataframe=df_merged,
+                    kategori_filter=selected_kategori,
+                    semua_kategori_defs=kategori_usia_defs,
+                    kolom_tampil=kolom_hadir,
+                    judul_prefix=""  # Tidak perlu prefix untuk yang hadir
+                )
 
                 if not ada_data_kunjungan:
                     st.info("Tidak ada data kunjungan (hadir) yang cocok dengan filter.")
 
-            # st.divider()
-            
+            # --- BLOK DATA WARGA TIDAK HADIR (Sudah Rapi) ---
             with st.expander("Lihat Data Warga yang Tidak Hadir Posyandu"):
-                # --- PERBAIKAN DI SINI ---
-                # Menggunakan 'warga_id' karena kolom 'id' di-rename oleh pandas merge
+                # Persiapan data warga tidak hadir (logika ini tetap diperlukan)
                 id_hadir = df_merged['warga_id'].unique()
-
                 df_tidak_hadir = df_warga_wilayah[~df_warga_wilayah['id'].isin(id_hadir)]
 
                 if selected_gender != "Semua":
@@ -575,25 +608,17 @@ def page_dashboard():
                 
                 st.subheader(f"Data Warga yang Tidak Hadir pada {selected_date.strftime('%d %B %Y')}")
 
-                ada_data_tidak_hadir = False
-                if not df_tidak_hadir.empty:
-                    if selected_kategori == "Tampilkan Semua":
-                        for nama_kategori, _ in kategori_usia_defs.items():
-                            df_kategori_absen = df_tidak_hadir[df_tidak_hadir['kategori_usia'] == nama_kategori]
-                            if not df_kategori_absen.empty:
-                                ada_data_tidak_hadir = True
-                                st.markdown(f"#### Tidak Hadir: {nama_kategori}")
-                                df_display_absen = df_kategori_absen.reset_index(drop=True)
-                                df_display_absen.index += 1 # Membuat indeks mulai dari 1
-                                st.dataframe(df_display_absen[['nama_lengkap', 'rt', 'blok']], use_container_width=True)
-                    else:
-                        df_kategori_absen = df_tidak_hadir[df_tidak_hadir['kategori_usia'] == selected_kategori]
-                        if not df_kategori_absen.empty:
-                            ada_data_tidak_hadir = True
-                            st.markdown(f"#### Tidak Hadir: {selected_kategori}")
-                            df_display_absen = df_kategori_absen.reset_index(drop=True)
-                            df_display_absen.index += 1 # Membuat indeks mulai dari 1
-                            st.dataframe(df_display_absen[['nama_lengkap', 'rt', 'blok']], use_container_width=True)
+                # Definisikan kolom yang ingin ditampilkan untuk warga yang tidak hadir
+                kolom_tidak_hadir = ['nama_lengkap', 'rt', 'blok']
+
+                # Panggil fungsi bantuan yang SAMA untuk menampilkan data
+                ada_data_tidak_hadir = tampilkan_data_per_kategori(
+                    dataframe=df_tidak_hadir,
+                    kategori_filter=selected_kategori,
+                    semua_kategori_defs=kategori_usia_defs,
+                    kolom_tampil=kolom_tidak_hadir,
+                    judul_prefix="Tidak Hadir: " # Beri prefix agar jelas
+                )
                 
                 if not ada_data_tidak_hadir:
                     st.success("Semua warga yang cocok dengan filter telah hadir, atau tidak ada data warga untuk ditampilkan.")
