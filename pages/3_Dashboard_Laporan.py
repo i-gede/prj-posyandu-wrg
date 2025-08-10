@@ -639,6 +639,21 @@ def page_dashboard():
                 'partisipasi_hari_ini': partisipasi_hari_ini
             }
             
+            # c. Data Rinci (format ulang untuk laporan)
+            df_laporan_rinci = pd.DataFrame()
+            if not df_merged.empty:
+                df_laporan_rinci = df_merged[[
+                    'nama_lengkap', 'rt', 'usia', 'tensi_sistolik', 'tensi_diastolik', 
+                    'berat_badan_kg', 'gula_darah', 'kolesterol'
+                ]].copy()
+                df_laporan_rinci.rename(columns={
+                    'nama_lengkap': 'Nama Lengkap', 'rt': 'RT', 'usia': 'Usia (thn)',
+                    'tensi_sistolik': 'Sistolik', 'tensi_diastolik': 'Diastolik',
+                    'berat_badan_kg': 'Berat (kg)', 'gula_darah': 'Gula Darah',
+                    'kolesterol': 'Kolesterol'
+                }, inplace=True)
+                df_laporan_rinci['Usia (thn)'] = df_laporan_rinci['Usia (thn)'].round(1)
+
             # c. DataFrame Warga Tidak Hadir (per kategori)
             # ==========================================================
             # === INI ADALAH BAGIAN YANG DIMODIFIKASI SECARA TOTAL ===
