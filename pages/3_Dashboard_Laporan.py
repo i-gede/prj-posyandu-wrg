@@ -58,26 +58,22 @@ def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#
     # --- 
 
 # --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
-def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi, dfs_tidak_hadir_by_category):
+def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi, df_tidak_hadir):
     """
     Membuat laporan PDF dari data yang sudah difilter.
-    Fungsi ini dimodifikasi untuk menerima dictionary DataFrame 'tidak hadir' per kategori.
+    Fungsi ini dimodifikasi untuk menerima gambar dari Plotly.
     """
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
     
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
-    # Tambahkan style baru untuk sub-judul kategori
-    styles.add(ParagraphStyle(name='h3', fontSize=11, fontName='Helvetica-Bold', spaceBefore=10, spaceAfter=5))
     elements = []
 
-    # ==========================================================
-    # BAGIAN HEADER DAN METRIK (TIDAK ADA PERUBAHAN)
-    # ==========================================================
     # --- Header ---
     elements.append(Paragraph("Laporan Posyandu Mawar - KBU", styles['h1']))
     elements.append(Spacer(1, 0.2 * inch))
+    
     filter_text = f"<b>Filter Laporan:</b><br/>- Tanggal: {filters['selected_date_str']}<br/>- Wilayah: {filters['rt']}<br/>- Kategori Usia: {filters['kategori']}<br/>- Jenis Kelamin: {filters['gender']}"
     elements.append(Paragraph(filter_text, styles['Normal']))
     elements.append(Spacer(1, 0.3 * inch))
@@ -91,7 +87,8 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
     ]
     metric_table = Table(metric_data, colWidths=[2.5*inch, 2.5*inch])
     metric_table.setStyle(TableStyle([
-        ('ALIGN', (0,0), (-1,-1), 'LEFT'), ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE')
     ]))
     elements.append(metric_table)
@@ -101,6 +98,7 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
     if fig_komposisi:
         elements.append(Paragraph("Diagram Komposisi Warga", styles['h2']))
         img_buffer_komposisi = BytesIO()
+        # Menggunakan write_image untuk Plotly (membutuhkan 'kaleido')
         fig_komposisi.write_image(img_buffer_komposisi, format='png', scale=2)
         img_buffer_komposisi.seek(0)
         elements.append(Image(img_buffer_komposisi, width=6*inch, height=4*inch))
@@ -116,59 +114,50 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
 
     elements.append(PageBreak())
     
-    # --- Tabel Data Rinci (TIDAK ADA PERUBAHAN) ---
+    # --- Tabel Data Rinci ---
     elements.append(Paragraph("Data Rinci Kunjungan (Warga Hadir)", styles['h2']))
     elements.append(Spacer(1, 0.2 * inch))
+    
+    # Pastikan ada data sebelum membuat tabel
     if not df_rinci.empty:
-        df_rinci_pdf = df_rinci.copy()
-        df_rinci_pdf.insert(0, "No", range(1, len(df_rinci_pdf) + 1))
-        table_data = [df_rinci_pdf.columns.to_list()] + df_rinci_pdf.values.tolist()
+        df_rinci = df_rinci.copy()
+        df_rinci.insert(0, "No", range(1, len(df_rinci) + 1))  # Tambahkan nomor urut
+        table_data = [df_rinci.columns.to_list()] + df_rinci.values.tolist()
         data_rinci_table = Table(table_data, repeatRows=1, hAlign='LEFT')
         data_rinci_table.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.darkslategray), ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
             ('ALIGN', (0,0), (-1,-1), 'LEFT'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
             ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), ('FONTSIZE', (0,0), (-1,0), 10),
-            ('BOTTOMPADDING', (0,0), (-1,0), 12), ('BACKGROUND', (0,1), (-1,-1), colors.beige),
-            ('GRID', (0,0), (-1,-1), 1, colors.black), ('FONTSIZE', (0,1), (-1,-1), 9)
+            ('BOTTOMPADDING', (0,0), (-1,0), 12),
+            ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+            ('GRID', (0,0), (-1,-1), 1, colors.black),
+            ('FONTSIZE', (0,1), (-1,-1), 9)
         ]))
         elements.append(data_rinci_table)
     else:
         elements.append(Paragraph("Tidak ada data kunjungan rinci untuk ditampilkan.", styles['Normal']))
 
-    # ==========================================================
-    # === BAGIAN INI DIUBAH TOTAL UNTUK MENANGANI DICTIONARY ===
-    # ==========================================================
+
+    # --- Tabel Data Tidak Hadir ---
     elements.append(PageBreak())
     elements.append(Paragraph("Data Warga Tidak Hadir", styles['h2']))
-    elements.append(Spacer(1, 0.1 * inch))
-
-    # Periksa apakah dictionary-nya kosong
-    if dfs_tidak_hadir_by_category:
-        # Lakukan perulangan untuk setiap item di dalam dictionary
-        for category_name, df_category in dfs_tidak_hadir_by_category.items():
-            
-            # Tambahkan sub-judul untuk setiap kategori
-            elements.append(Paragraph(f"Kategori: {category_name}", styles['h3']))
-            
-            # Buat tabel dari DataFrame kategori saat ini
-            df_category_pdf = df_category.copy()
-            df_category_pdf.insert(0, "No", range(1, len(df_category_pdf) + 1))
-            
-            table_data_tidak_hadir = [df_category_pdf.columns.to_list()] + df_category_pdf.values.tolist()
-            data_tidak_hadir_table = Table(table_data_tidak_hadir, repeatRows=1, hAlign='LEFT')
-            
-            # Terapkan style yang sama untuk setiap tabel
-            data_tidak_hadir_table.setStyle(TableStyle([
-                ('BACKGROUND', (0,0), (-1,0), colors.darkred), ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-                ('ALIGN', (0,0), (-1,-1), 'LEFT'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), ('FONTSIZE', (0,0), (-1,0), 10),
-                ('BOTTOMPADDING', (0,0), (-1,0), 12), ('BACKGROUND', (0,1), (-1,-1), colors.antiquewhite),
-                ('GRID', (0,0), (-1,-1), 1, colors.black), ('FONTSIZE', (0,1), (-1,-1), 9)
-            ]))
-            elements.append(data_tidak_hadir_table)
-            elements.append(Spacer(1, 0.3 * inch)) # Beri jarak antar tabel
+    elements.append(Spacer(1, 0.2 * inch))
+    if df_tidak_hadir is not None and not df_tidak_hadir.empty:
+        df_tidak_hadir = df_tidak_hadir.copy()
+        df_tidak_hadir.insert(0, "No", range(1, len(df_tidak_hadir) + 1))  # Tambahkan nomor urut
+        table_data_tidak_hadir = [df_tidak_hadir.columns.to_list()] + df_tidak_hadir.values.tolist()
+        data_tidak_hadir_table = Table(table_data_tidak_hadir, repeatRows=1, hAlign='LEFT')
+        data_tidak_hadir_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.darkred), ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), ('FONTSIZE', (0,0), (-1,0), 10),
+            ('BOTTOMPADDING', (0,0), (-1,0), 12),
+            ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+            ('GRID', (0,0), (-1,-1), 1, colors.black),
+            ('FONTSIZE', (0,1), (-1,-1), 9)
+        ]))
+        elements.append(data_tidak_hadir_table)
     else:
-        # Tampilkan pesan jika tidak ada data sama sekali
         elements.append(Paragraph("Semua warga hadir atau tidak ada data tidak hadir untuk ditampilkan.", styles['Normal']))
 
     doc.build(elements)
@@ -614,15 +603,12 @@ def page_dashboard():
             # ...
 
             # --- [BLOK KODE BARU] UNTUK FITUR DOWNLOAD PDF ---
-            # st.divider()
-            # st.subheader("📥 Unduh Laporan")
-# --- [BLOK KODE BARU] UNTUK FITUR DOWNLOAD PDF ---
             st.divider()
             st.subheader("📥 Unduh Laporan")
             
             # 1. Siapkan semua data yang diperlukan untuk PDF
             
-            # a. Filter (Tidak ada perubahan di sini)
+            # a. Filter
             filters_for_pdf = {
                 'selected_date_str': selected_date.strftime('%d %B %Y'),
                 'rt': "Lingkungan (Semua RT)" if selected_wilayah == "Lingkungan (Semua RT)" else f"RT {selected_wilayah}",
@@ -630,7 +616,7 @@ def page_dashboard():
                 'gender': selected_gender
             }
 
-            # b. Metrik (Tidak ada perubahan di sini)
+            # b. Metrik
             hadir_hari_ini = len(id_hadir_keseluruhan)
             partisipasi_hari_ini = (hadir_hari_ini / total_warga_wilayah * 100) if total_warga_wilayah > 0 else 0
             metrics_for_pdf = {
@@ -638,7 +624,7 @@ def page_dashboard():
                 'hadir_hari_ini': hadir_hari_ini,
                 'partisipasi_hari_ini': partisipasi_hari_ini
             }
-            
+
             # c. Data Rinci (format ulang untuk laporan)
             df_laporan_rinci = pd.DataFrame()
             if not df_merged.empty:
@@ -654,50 +640,24 @@ def page_dashboard():
                 }, inplace=True)
                 df_laporan_rinci['Usia (thn)'] = df_laporan_rinci['Usia (thn)'].round(1)
 
-            # c. DataFrame Warga Tidak Hadir (per kategori)
-            # ==========================================================
-            # === INI ADALAH BAGIAN YANG DIMODIFIKASI SECARA TOTAL ===
-            # ==========================================================
-            dfs_tidak_hadir_for_pdf = {}
+            df_tidak_hadir_pdf = pd.DataFrame()
             if not df_tidak_hadir.empty:
-                # Dapatkan daftar kategori unik dari DataFrame yang sudah ada
-                # Pastikan urutannya sesuai (jika Anda memiliki urutan spesifik)
-                # Asumsi 'kategori_usia_defs.keys()' memberikan urutan yang benar.
-                kategori_list = list(kategori_usia_defs.keys())
-
-                for kategori in kategori_list:
-                    # Filter DataFrame untuk kategori saat ini
-                    df_kategori = df_tidak_hadir[df_tidak_hadir['kategori_usia'] == kategori]
-
-                    # Jika ada data untuk kategori ini, proses dan simpan
-                    if not df_kategori.empty:
-                        # Ambil kolom yang relevan dan buat salinan
-                        df_pdf = df_kategori[['nama_lengkap', 'rt', 'usia']].copy()
-                        
-                        # Ubah nama kolom agar lebih deskriptif di PDF
-                        df_pdf.rename(columns={
-                            'nama_lengkap': 'Nama Lengkap',
-                            'rt': 'RT',
-                            'usia': 'Usia (thn)'
-                        }, inplace=True)
-                        
-                        # Bulatkan usia dan pastikan urutan indeks rapi
-                        df_pdf['Usia (thn)'] = df_pdf['Usia (thn)'].round(1)
-                        df_pdf.reset_index(drop=True, inplace=True)
-                        df_pdf.index += 1 # Opsional: jika ingin nomor baris di PDF mulai dari 1
-                        
-                        # Simpan DataFrame yang sudah diproses ke dalam dictionary
-                        dfs_tidak_hadir_for_pdf[kategori] = df_pdf
-            
+                df_tidak_hadir_pdf = df_tidak_hadir[['nama_lengkap', 'rt', 'usia']].copy()
+                df_tidak_hadir_pdf.rename(columns={
+                    'nama_lengkap': 'Nama Lengkap',
+                    'rt': 'RT',
+                    'usia': 'Usia (thn)'
+                }, inplace=True)
+                df_tidak_hadir_pdf['Usia (thn)'] = df_tidak_hadir_pdf['Usia (thn)'].round(1)    
+    
             # 2. Hasilkan file PDF di memori
             pdf_buffer = generate_pdf_report(
                 filters=filters_for_pdf,
                 metrics=metrics_for_pdf,
-                df_rinci=df_laporan_rinci, # Asumsi df_laporan_rinci sudah ada
-                # Kirim dictionary yang berisi tabel-tabel per kategori
-                dfs_tidak_hadir_by_category=dfs_tidak_hadir_for_pdf, 
-                fig_komposisi=fig_sunburst_komposisi, # Asumsi fig ini sudah ada
-                fig_partisipasi=fig_sunburst_partisipasi # Asumsi fig ini sudah ada
+                df_rinci=df_laporan_rinci,
+                df_tidak_hadir=df_tidak_hadir_pdf,
+                fig_komposisi=fig_sunburst_komposisi,
+                fig_partisipasi=fig_sunburst_partisipasi
             )
 
             # 3. Buat tombol download
