@@ -13,7 +13,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
-from data_utils import load_raw_data, calculate_age # <-- Impor fungsi baru
+from data_utils import calculate_age # <-- Impor fungsi baru
 
 
 # --- KONEKSI & KEAMANAN ---
