@@ -52,8 +52,10 @@ def page_input_pemeriksaan():
                 gula_darah = st.number_input("Gula Darah (mg/dL)", min_value=0, step=1)
             with col2:
                 tensi_diastolik = st.number_input("Tensi Diastolik (mmHg)", min_value=0, step=1)
+                tinggi_badan_cm = st.number_input("Tinggi Badan (cm)", min_value=0.0, step=0.1, format="%.2f")#11082023 tambahan
                 lingkar_lengan_cm = st.number_input("Lingkar Lengan (cm)", min_value=0.0, step=0.5, format="%.1f")
                 kolesterol = st.number_input("Kolesterol (mg/dL)", min_value=0, step=1)
+                lingkar_kepala_cm = st.number_input("Lingkar Kepala (cm)", min_value=0.0, step=0.5, format="%.1f")
             
             catatan = st.text_area("Catatan Tambahan (Opsional)")
 
@@ -63,9 +65,11 @@ def page_input_pemeriksaan():
                 data_to_insert = {
                     "tanggal_pemeriksaan": str(tanggal_pemeriksaan), "warga_id": warga_id,
                     "tensi_sistolik": int(tensi_sistolik), "tensi_diastolik": int(tensi_diastolik),
-                    "berat_badan_kg": berat_badan_kg, "lingkar_perut_cm": lingkar_perut_cm,
-                    "lingkar_lengan_cm": lingkar_lengan_cm, "gula_darah": int(gula_darah),
-                    "kolesterol": int(kolesterol), "catatan": catatan
+                    "berat_badan_kg": berat_badan_kg, "tinggi_badan_cm": tinggi_badan_cm, #11082023 tambahan
+                    "lingkar_perut_cm": lingkar_perut_cm, "lingkar_lengan_cm": lingkar_lengan_cm, 
+                    "gula_darah": int(gula_darah),"kolesterol": int(kolesterol), 
+                    "lingkar_kepala_cm": lingkar_kepala_cm, 
+                    "catatan": catatan
                 }
                 try:
                     supabase.table("pemeriksaan").insert(data_to_insert).execute()
