@@ -13,6 +13,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from data_utils import load_raw_data, calculate_age # <-- Impor fungsi baru
 
 
 # --- KONEKSI & KEAMANAN ---
@@ -316,8 +317,9 @@ def page_dashboard():
         )
         
         if selected_date:
-            df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
-            df_warga['usia'] = (pd.to_datetime(selected_date) - df_warga['tanggal_lahir']).dt.days / 365.25
+            #df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
+            #df_warga['usia'] = (pd.to_datetime(selected_date) - df_warga['tanggal_lahir']).dt.days / 365.25
+            df_warga = calculate_age(df_warga, selected_date)
 
             kategori_usia_list = [
                 "Tampilkan Semua", "Bayi (0-6 bln)", "Baduta (>6 bln - 2 thn)", "Balita (>2 - 5 thn)", 
