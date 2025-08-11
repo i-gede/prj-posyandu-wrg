@@ -97,9 +97,6 @@ def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#
     return fig
     # --- 
 
-# --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
-# --- FUNGSI PEMBANTU PDF (VERSI MODIFIKASI) ---
-# --- FUNGSI PEMBANTU PDF (VERSI FINAL DENGAN TABEL KOMPOSISI) ---
 # --- FUNGSI PEMBANTU PDF (VERSI FINAL DENGAN TOTAL ROW & URUTAN BARU) ---
 def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi, df_tidak_hadir, semua_kategori_defs, data_komposisi):
     """
@@ -277,12 +274,8 @@ def get_kategori(usia):
     if usia <= 18: return "Anak Usia Sekolah dan Remaja (6 - 18 thn)"
     if usia < 60: return "Dewasa (>18 - <60 thn)"
     return "Lansia (≥60 thn)"
+
 # --- FUNGSI HALAMAN UTAMA ---
-# GANTI SELURUH FUNGSI page_dashboard ANDA DENGAN INI
-
-# GANTI SELURUH FUNGSI page_dashboard ANDA DENGAN INI
-
-# GANTI SELURUH FUNGSI page_dashboard ANDA DENGAN INI
 
 def page_dashboard():
     st.markdown(
@@ -344,9 +337,7 @@ def page_dashboard():
             df_warga_wilayah = df_warga.copy()
             if selected_wilayah != "Lingkungan (Semua RT)":
                 df_warga_wilayah = df_warga[df_warga['rt'] == selected_wilayah]
-            
-            # --- Bagian Demografi Wilayah (TETAP SAMA) ---
-            # ... (Kode demografi tidak perlu diubah) ...
+
 
             # --- Perhitungan Demografi ---
             total_warga_wilayah = len(df_warga_wilayah)
@@ -467,9 +458,7 @@ def page_dashboard():
                 ("Lansia (≥60 thn)", jumlah_lansia_wilayah, jumlah_lansia_laki_wilayah, jumlah_lansia_perempuan_wilayah),
             ]
 
-            # Tampilkan setiap baris demografi dengan grafik
-            # GANTI SELURUH BLOK 'for' ANDA DENGAN YANG INI
-
+            #------------------- [ BLOK UNTUK BARIS TAMPILAN DEMOGRAFI DAN GRAFIKNYA ] -------------------
             with st.expander("Lihat Rinci Data Komposisi Warga"):
                 # Tampilkan setiap baris demografi dengan layout kolom dan container
                 for label, total, laki, perempuan in baris_demografi:
@@ -504,12 +493,12 @@ def page_dashboard():
 
                     # Beri sedikit spasi antar kategori
                     st.write("")
-                #------------------- [ AKHIR PERUBAHAN UTAMA ] -------------------
+            #------------------- [ AKHIR BARIS TAMPILAN DEMOGRAFI DAN GRAFIKNYA ] -------------------
 
 
             st.divider()
 
-            # --- [ BLOK KODE SUNBURST PARTISIPASI YANG DIPERBAIKI ] ---
+            # --- [ BLOK KODE SUNBURST PARTISIPASI ] ---
             st.subheader("Ringkasan Partisipasi Warga yang Hadir")
 
             # 1. Ambil data warga yang hadir saja
@@ -552,15 +541,12 @@ def page_dashboard():
                 st.plotly_chart(fig_sunburst_partisipasi, use_container_width=True)
             else:
                 st.info("Tidak ada data partisipasi (hadir) yang cocok dengan filter untuk ditampilkan.")
-
-
+            # --- [ AKHIR BLOK KODE SUNBURST PARTISIPASI ] ---
 
             st.divider()
-            # --- [ AKHIR DARI BLOK KODE BARU ] ---
 
 
-            # --- [ AWAL PERUBAHAN UTAMA: DIAGRAM TINGKAT PARTISIPASI ] ---
-            
+            # --- [ AWAL BLOK UNTUK DIAGRAM DONUT TINGKAT PARTISIPASI ] ---
             st.subheader("Tingkat Partisipasi Berdasarkan Usia")
 
             df_pemeriksaan_harian = df_pemeriksaan[df_pemeriksaan['tanggal_pemeriksaan'] == selected_date]
@@ -579,16 +565,6 @@ def page_dashboard():
                 "Anak Pra-Sekolah (>5 - <6 thn)": (5, 6), "Anak Usia Sekolah dan Remaja (6 - 18 thn)": (6, 18),
                 "Dewasa (>18 - <60 thn)": (18, 60), "Lansia (≥60 thn)": (60, 200)
             }
-            
-            # # Fungsi untuk menentukan kategori usia, digunakan di banyak tempat
-            # def get_kategori(usia):
-            #     if usia <= 0.5: return "Bayi (0-6 bln)"
-            #     if usia <= 2: return "Baduta (>6 bln - 2 thn)"
-            #     if usia <= 5: return "Balita (>2 - 5 thn)"
-            #     if usia < 6: return "Anak Pra-Sekolah (>5 - <6 thn)"
-            #     if usia <= 18: return "Anak Usia Sekolah dan Remaja (6 - 18 thn)"
-            #     if usia < 60: return "Dewasa (>18 - <60 thn)"
-            #     return "Lansia (≥60 thn)"
             
             # Buat kolom untuk menata diagram
             cols = st.columns(4)
@@ -626,7 +602,8 @@ def page_dashboard():
                         st.pyplot(fig)
                     
                     col_idx = (col_idx + 1) % 4
-            
+            # --- [ AKHIR BLOK UNTUK DIAGRAM DONUT TINGKAT PARTISIPASI ] ---
+
             # Tambahkan kolom kategori usia ke dataframe gabungan untuk filtering di bawah
             if not df_merged.empty:
                 df_merged['kategori_usia'] = df_merged['usia'].apply(get_kategori)
@@ -687,17 +664,10 @@ def page_dashboard():
                 if not ada_data_tidak_hadir:
                     st.success("Semua warga yang cocok dengan filter telah hadir, atau tidak ada data warga untuk ditampilkan.")
             
-            # st.divider()
-            # (Sisa kode untuk tren dan PDF tidak perlu diubah)
-            # ...
 
-            # --- [BLOK KODE BARU] UNTUK FITUR DOWNLOAD PDF ---
-            # st.divider()
-            # st.subheader("📥 Unduh Laporan")
-
-# --- [TAMBAHKAN BLOK INI] Tombol untuk Mengunduh Laporan PDF ---
+            # --- [TAMBAHKAN BLOK INI] Tombol untuk Mengunduh Laporan PDF ---
             st.divider()
-            st.subheader("⬇️ Unduh Laporan")
+            st.subheader("📥⬇️ Unduh Laporan")
 
             # Persiapan data final untuk PDF
             # Pastikan kolom yang relevan dipilih
@@ -761,6 +731,7 @@ def page_dashboard():
     except Exception as e:
         st.error(f"Gagal membuat laporan: {e}")
         st.exception(e)
+# ---AKHIR FUNGSI HALAMAN UTAMA ---
 
 # --- JALANKAN HALAMAN ---
 page_dashboard()
