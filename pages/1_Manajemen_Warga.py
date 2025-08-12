@@ -115,6 +115,7 @@ def page_manajemen_warga():
 
             with st.expander("✏️ Edit Data Diri Warga"):
                 with st.form("edit_warga_form"):
+                    edit_nik = st.text_input("NIK", value=selected_warga_data['nik']) #13082025 field edit NIK
                     edit_nama = st.text_input("Nama Lengkap", value=selected_warga_data['nama_lengkap'])
                     
                     col_edit1, col_edit2 = st.columns(2)
@@ -129,7 +130,7 @@ def page_manajemen_warga():
                     if st.form_submit_button("Simpan Perubahan Data Diri"):
                         try:
                             update_data = {
-                                "nama_lengkap": edit_nama, "tanggal_lahir": str(edit_tgl_lahir), 
+                                "nik": edit_nik, "nama_lengkap": edit_nama, "tanggal_lahir": str(edit_tgl_lahir), 
                                 "alamat": edit_alamat, "telepon": edit_telepon,
                                 "rt": edit_rt, "blok": edit_blok
                             }
