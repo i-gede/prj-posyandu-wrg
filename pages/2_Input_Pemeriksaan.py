@@ -67,10 +67,10 @@ def page_input_pemeriksaan():
         umur = calculate_age(selected_warga_data['tanggal_lahir'], tanggal_pemeriksaan)
 
         # ---- Untuk Debugging (bisa dihapus nanti) ----
-        st.info("Informasi Debug:")
-        st.write(f"1. Nama Dipilih: `{selected_display_name}`")
-        st.write(f"2. Tanggal Lahir dari Database: `{selected_warga_data['tanggal_lahir']}`")
-        st.write(f"3. Umur Dihitung: `{umur}` tahun")
+        st.info(f"`{selected_display_name}`, Tanggal Lahir: `{selected_warga_data['tanggal_lahir']}`,umur: '{umur}'")
+        #st.write(f"1. Nama Dipilih: `{selected_display_name}`")
+        #st.write(f"2. Tanggal Lahir dari Database: `{selected_warga_data['tanggal_lahir']}`")
+        #st.write(f"3. Umur Dihitung: `{umur}` tahun")
         # ---- Akhir Debugging ----
 
         if umur is None:
@@ -79,7 +79,7 @@ def page_input_pemeriksaan():
 
         # === LANGKAH 3: FORM HANYA BERISI INPUT DATA & TOMBOL SUBMIT ===
         with st.form("pemeriksaan_form", clear_on_submit=True):
-            st.write(f"**Silakan Masukkan Hasil Pemeriksaan untuk `{selected_display_name}`**")
+            st.write(f"**Silakan Masukkan Hasil Pemeriksaan**")# `{selected_display_name}`**")
             
             # Inisialisasi variabel
             tensi_sistolik = tensi_diastolik = gula_darah = kolesterol = 0
