@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from supabase import create_client
 from datetime import date, datetime
 from io import BytesIO
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, legal
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
@@ -114,7 +114,7 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
     Fungsi ini menyertakan total row pada tabel komposisi dan urutan elemen yang disesuaikan.
     """
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=F4, rightMargin=72, leftMargin=12, topMargin=72, bottomMargin=18)
+    doc = SimpleDocTemplate(buffer, pagesize=legal, rightMargin=72, leftMargin=12, topMargin=72, bottomMargin=18)
     
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
