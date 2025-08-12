@@ -218,13 +218,16 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
             # --- [PERUBAHAN UTAMA] LOGIKA PEMILIHAN KOLOM DINAMIS ADA DI SINI ---
             if nama_kategori in ["Dewasa (>18 - <60 thn)", "Lansia (≥60 thn)"]:
                 kolom_hadir_pdf = [
-                    'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
-                    'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
+                    'nama_lengkap', 'usia_teks', 'rt', 'blok',
+                    'berat_badan_kg', 'tinggi_badan_cm', 'lingkar_perut_cm',
+                    'tensi_sistolik', 'tensi_diastolik', 
+                    'gula_darah', 'kolesterol'
                 ]
             else: # Untuk kategori lainnya
                 kolom_hadir_pdf = [
-                    'nama_lengkap', 'usia_teks', 'rt', 'blok', 'berat_badan_kg', 
-                    'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm'
+                    'nama_lengkap', 'usia_teks', 'rt', 'blok',
+                    'berat_badan_kg', 'tinggi_badan_cm',
+                    'lingkar_lengan_cm', 'lingkar_kepala_cm'
                 ]
             kolom_valid = [kol for kol in kolom_hadir_pdf if kol in df_kategori.columns]
             # df_display = df_kategori.copy()
@@ -317,10 +320,11 @@ def page_dashboard():
         'usia_teks': 'Usia',
         'rt': 'RT',
         'blok': 'Blok',
-        'berat_badan_kg': 'Berat Badan\n(kg)',
-        'tinggi_badan_cm': 'Tinggi Badan\n(cm)',
-        'lingkar_lengan_cm': 'Lingkar Lengan\n(cm)',
-        'lingkar_kepala_cm': 'Lingkar Kepala\n(cm)',
+        'berat_badan_kg': 'Berat\nBadan\n(kg)',
+        'tinggi_badan_cm': 'Tinggi\nBadan\n(cm)',
+        'lingkar_lengan_cm': 'Lingkar\nLengan\n(cm)',
+        'lingkar_perut_cm': 'Lingkar\nPerut\n(cm)',
+        'lingkar_kepala_cm': 'Lingkar\nKepala\n(cm)',
         'tensi_sistolik': 'Tensi\nSistolik',
         'tensi_diastolik': 'Tensi\nDiastolik',
         'gula_darah': 'Gula\nDarah',
