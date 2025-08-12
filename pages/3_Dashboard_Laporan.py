@@ -108,7 +108,7 @@ def buat_grafik_gender(laki, perempuan, warna_laki='#6495ED', warna_perempuan='#
     # --- 
 
 # --- FUNGSI PEMBANTU PDF (VERSI FINAL DENGAN TOTAL ROW & URUTAN BARU) ---
-def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi, df_tidak_hadir, semua_kategori_defs, data_komposisi):
+def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipasi, df_tidak_hadir, semua_kategori_defs, data_komposisi, column_maps):
     """
     Membuat laporan PDF dari data yang sudah difilter.
     Fungsi ini menyertakan total row pada tabel komposisi dan urutan elemen yang disesuaikan.
@@ -214,9 +214,22 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
             ada_data_hadir = True
             elements.append(Paragraph(f"Kategori: {nama_kategori}", styles['H3_Bold']))
             elements.append(Spacer(1, 0.1 * inch))
-            
-            df_display = df_kategori.copy()
-            df_display = df_display.drop(columns=['kategori_usia'])
+
+            # --- [PERUBAHAN UTAMA] LOGIKA PEMILIHAN KOLOM DINAMIS ADA DI SINI ---
+            if nama_kategori in ["Dewasa (>18 - <60 thn)", "Lansia (≥60 thn)"]:
+                kolom_hadir_pdf = [
+                    'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
+                    'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
+                ]
+            else: # Untuk kategori lainnya
+                kolom_hadir_pdf = [
+                    'nama_lengkap', 'usia_teks', 'rt', 'blok', 'berat_badan_kg', 
+                    'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm'
+                ]
+            kolom_valid = [kol for kol in kolom_hadir_pdf if kol in df_kategori.columns]
+            # df_display = df_kategori.copy()
+            # df_display = df_display.drop(columns=['kategori_usia'])
+            df_display = df_kategori[kolom_valid].copy().rename(columns=column_maps)
             df_display.insert(0, "No", range(1, len(df_display) + 1))
             
             table_data = [df_display.columns.to_list()] + df_display.values.tolist()
@@ -741,19 +754,19 @@ def page_dashboard():
             # Pastikan kolom yang relevan dipilih
 
 
-            for kategori in kategori_usia_defs:
-                # Memeriksa apakah kunci saat ini sama dengan string target
-                if kategori == "Dewasa (>18 - <60 thn)":
-                    # Jika sama, eksekusi perintah di sini
-                    kolom_hadir_pdf = [
-                        'kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
-                        'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
-                    ]
-                else:
-                    kolom_hadir_pdf = [
-                        'kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok',  
-                        'berat_badan_kg', 'lingkar_kepala_cm'
-                    ]                    
+            # for kategori in kategori_usia_defs:
+            #     # Memeriksa apakah kunci saat ini sama dengan string target
+            #     if kategori == "Dewasa (>18 - <60 thn)":
+            #         # Jika sama, eksekusi perintah di sini
+            #         kolom_hadir_pdf = [
+            #             'kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
+            #             'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
+            #         ]
+            #     else:
+            #         kolom_hadir_pdf = [
+            #             'kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok',  
+            #             'berat_badan_kg', 'lingkar_kepala_cm'
+            #         ]                    
 
             # kolom_hadir_pdf = [
             #     'kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
@@ -796,18 +809,29 @@ def page_dashboard():
                 with st.spinner("Membuat laporan PDF... Mohon tunggu sebentar."):
 
                     # [UBAH] Ganti nama kolom untuk DataFrame yang akan dikirim ke PDF
-                    df_rinci_pdf_renamed = df_data_rinci_pdf[kolom_hadir_pdf].rename(columns=COLUMN_MAPS)
-                    df_tidak_hadir_pdf_renamed = df_tidak_hadir_pdf[kolom_tidak_hadir_pdf].rename(columns=COLUMN_MAPS)
+                    # df_rinci_pdf_renamed = df_data_rinci_pdf[kolom_hadir_pdf].rename(columns=COLUMN_MAPS)
+                    # df_tidak_hadir_pdf_renamed = df_tidak_hadir_pdf[kolom_tidak_hadir_pdf].rename(columns=COLUMN_MAPS)
 
+                    # pdf_buffer = generate_pdf_report(
+                    #     filters=pdf_filters,
+                    #     metrics=pdf_metrics,
+                    #     df_rinci=df_rinci_pdf_renamed, # Gunakan DataFrame yang sudah di-rename
+                    #     fig_komposisi=fig_sunburst_komposisi if not df_komposisi.empty else None,
+                    #     fig_partisipasi=fig_sunburst_partisipasi if not df_partisipasi.empty else None,
+                    #     df_tidak_hadir=df_tidak_hadir_pdf_renamed, # Gunakan DataFrame yang sudah di-rename
+                    #     semua_kategori_defs=kategori_usia_defs,
+                    #     data_komposisi=baris_demografi
+                    # )
                     pdf_buffer = generate_pdf_report(
                         filters=pdf_filters,
                         metrics=pdf_metrics,
-                        df_rinci=df_rinci_pdf_renamed, # Gunakan DataFrame yang sudah di-rename
+                        df_rinci=df_data_rinci_pdf,                 # <-- Kirim data mentah, jangan dipotong
                         fig_komposisi=fig_sunburst_komposisi if not df_komposisi.empty else None,
                         fig_partisipasi=fig_sunburst_partisipasi if not df_partisipasi.empty else None,
-                        df_tidak_hadir=df_tidak_hadir_pdf_renamed, # Gunakan DataFrame yang sudah di-rename
+                        df_tidak_hadir=df_tidak_hadir_pdf,           # <-- Kirim data mentah
                         semua_kategori_defs=kategori_usia_defs,
-                        data_komposisi=baris_demografi
+                        data_komposisi=baris_demografi,
+                        column_maps=COLUMN_MAPS                    # <-- Tambahkan argumen ini
                     )
                     st.download_button(
                         label="✅ Laporan Siap! Klik untuk mengunduh",
