@@ -13,7 +13,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
-
+from dateutil.relativedelta import relativedelta #12082025 untuk akomodasi format ..Tahun...Bulan
 
 # --- KONEKSI & KEAMANAN ---
 st.set_page_config(page_title="Dashboard & Laporan", page_icon="📈", layout="wide")
@@ -26,6 +26,16 @@ supabase = st.session_state.get('supabase_client')
 if not supabase:
     st.error("Koneksi Supabase tidak ditemukan. Silakan login kembali.")
     st.stop()
+
+def format_usia_string(tgl_lahir, tgl_referensi): #12082025 tambahan fungsi untuk ..Tahun..Bulan
+    """
+    Mengubah tanggal lahir menjadi format string 'X Tahun Y Bulan'.
+    Bekerja dengan objek datetime dari Pandas.
+    """
+    if pd.isna(tgl_lahir):
+        return "N/A"
+    delta = relativedelta(tgl_referensi, tgl_lahir)
+    return f"{delta.years} Tahun {delta.months} Bulan"
 
 def tampilkan_data_per_kategori(dataframe, kategori_filter, semua_kategori_defs, kolom_tampil, judul_prefix=""):
     """
@@ -317,7 +327,13 @@ def page_dashboard():
         
         if selected_date:
             df_warga['tanggal_lahir'] = pd.to_datetime(df_warga['tanggal_lahir'])
+            # 1. TETAP hitung 'usia' numerik untuk logika filter & kategori
             df_warga['usia'] = (pd.to_datetime(selected_date) - df_warga['tanggal_lahir']).dt.days / 365.25
+
+            # 2. [BARU] Buat kolom 'usia_teks' dengan format "Tahun Bulan" yang akurat
+            df_warga['usia_teks'] = df_warga['tanggal_lahir'].apply(
+                lambda tgl: format_usia_string(tgl, selected_date)
+            )
 
             kategori_usia_list = [
                 "Tampilkan Semua", "Bayi (0-6 bln)", "Baduta (>6 bln - 2 thn)", "Balita (>2 - 5 thn)", 
@@ -608,7 +624,7 @@ def page_dashboard():
             if not df_merged.empty:
                 df_merged['kategori_usia'] = df_merged['usia'].apply(get_kategori)
                 # BUAT JUGA KOLOM USIA DALAM BENTUK TEKS AGAR LEBIH INFORMATIF DI TABEL
-                df_merged['usia_teks'] = df_merged['usia'].apply(lambda u: f"{int(u)} thn" if u >= 1 else f"{int(u * 12)} bln")
+                #df_merged['usia_teks'] = df_merged['usia'].apply(lambda u: f"{int(u)} thn" if u >= 1 else f"{int(u * 12)} bln")
 
             # --- [ AKHIR PERUBAHAN UTAMA ] ---
             
