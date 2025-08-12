@@ -35,7 +35,7 @@ def format_usia_string(tgl_lahir, tgl_referensi): #12082025 tambahan fungsi untu
     if pd.isna(tgl_lahir):
         return "N/A"
     delta = relativedelta(tgl_referensi, tgl_lahir)
-    return f"{delta.years} Tahun {delta.months} Bulan"
+    return f"{delta.years} Thn {delta.months} Bln"
 
 def tampilkan_data_per_kategori(dataframe, kategori_filter, semua_kategori_defs, kolom_tampil, judul_prefix=""):
     """
