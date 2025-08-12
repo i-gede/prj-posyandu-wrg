@@ -739,7 +739,7 @@ def page_dashboard():
 
             # Persiapan data final untuk PDF
             # Pastikan kolom yang relevan dipilih
-            if usia_max > 6:
+            if kategori_usia_defs == "Lansia (≥60 thn)":
                 kolom_hadir_pdf = [
                     'kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
                     'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
