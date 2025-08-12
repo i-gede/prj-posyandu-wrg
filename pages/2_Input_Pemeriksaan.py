@@ -118,14 +118,14 @@ def page_input_pemeriksaan():
             else:
                 col1, col2 = st.columns(2)
                 with col1:
-                    tensi_sistolik = st.number_input("Tensi Sistolik (mmHg)", min_value=0, step=1)
                     berat_badan_kg = st.number_input("Berat Badan (kg)", min_value=0.0, step=0.1, format="%.2f")
                     lingkar_perut_cm = st.number_input("Lingkar Perut (cm)", min_value=0.0, step=0.5, format="%.1f")
+                    tensi_sistolik = st.number_input("Tensi Sistolik (mmHg)", min_value=0, step=1)
                     gula_darah = st.number_input("Gula Darah (mg/dL)", min_value=0, step=1)
                 with col2:
-                    tensi_diastolik = st.number_input("Tensi Diastolik (mmHg)", min_value=0, step=1)
                     tinggi_badan_cm = st.number_input("Tinggi Badan (cm)", min_value=0.0, step=0.1, format="%.2f")
                     lingkar_lengan_cm = st.number_input("Lingkar Lengan (cm)", min_value=0.0, step=0.5, format="%.1f")
+                    tensi_diastolik = st.number_input("Tensi Diastolik (mmHg)", min_value=0, step=1)
                     kolesterol = st.number_input("Kolesterol (mg/dL)", min_value=0, step=1)
             
             catatan = st.text_area("Catatan Tambahan (Opsional)")
