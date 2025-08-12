@@ -820,7 +820,8 @@ def page_dashboard():
                         fig_partisipasi=fig_sunburst_partisipasi if not df_partisipasi.empty else None,
                         df_tidak_hadir=df_tidak_hadir_pdf_renamed, # Gunakan DataFrame yang sudah di-rename
                         semua_kategori_defs=kategori_usia_defs,
-                        data_komposisi=baris_demografi
+                        data_komposisi=baris_demografi,
+                        column_maps=COLUMN_MAPS
                     )
                     st.download_button(
                         label="✅ Laporan Siap! Klik untuk mengunduh",
