@@ -298,6 +298,22 @@ def page_dashboard():
     )
     if not supabase: return
 
+    # [BARU] Dictionary untuk memetakan nama kolom teknis ke nama yang ramah pengguna
+    COLUMN_MAPS = {
+        'nama_lengkap': 'Nama Lengkap',
+        'usia_teks': 'Usia',
+        'rt': 'RT',
+        'blok': 'Blok',
+        'berat_badan_kg': 'Berat Badan (kg)',
+        'tinggi_badan_cm': 'Tinggi Badan (cm)',
+        'lingkar_lengan_cm': 'Lingkar Lengan (cm)',
+        'lingkar_kepala_cm': 'Lingkar Kepala (cm)',
+        'tensi_sistolik': 'Tensi Sistolik',
+        'tensi_diastolik': 'Tensi Diastolik',
+        'gula_darah': 'Gula Darah',
+        'kolesterol': 'Kolesterol'
+    }
+
     try:
         warga_response = supabase.table("warga").select("*").execute()
         pemeriksaan_response = supabase.table("pemeriksaan").select("*").execute()
@@ -668,7 +684,10 @@ def page_dashboard():
                         st.markdown(f"#### {nama_kategori}")
                         df_display = df_kategori.reset_index(drop=True)
                         df_display.index += 1
-                        st.dataframe(df_display[kolom_valid], use_container_width=True)
+
+                        # [UBAH] Ganti nama kolom sebelum ditampilkan
+                        df_renamed = df_display[kolom_valid].rename(columns=COLUMN_MAPS)
+                        st.dataframe(df_renamed, use_container_width=True)
 
                 # Tampilkan pesan jika tidak ada data sama sekali setelah loop selesai
                 if not ada_data_kunjungan_total:
@@ -676,7 +695,7 @@ def page_dashboard():
 
             # --- BLOK DATA WARGA TIDAK HADIR (Sudah Rapi) ---
             with st.expander("Lihat Data Warga yang Tidak Hadir Posyandu"):
-                # Persiapan data warga tidak hadir (logika ini tetap diperlukan)
+                # Persiapan data warga tidak hadir
                 id_hadir = df_merged['warga_id'].unique()
                 df_tidak_hadir = df_warga_wilayah[~df_warga_wilayah['id'].isin(id_hadir)]
 
@@ -689,21 +708,30 @@ def page_dashboard():
                 
                 st.subheader(f"Data Warga yang Tidak Hadir pada {selected_date.strftime('%d %B %Y')}")
 
-                # Definisikan kolom yang ingin ditampilkan untuk warga yang tidak hadir
-                kolom_tidak_hadir = ['nama_lengkap', 'rt', 'blok']
-
-                # Panggil fungsi bantuan yang SAMA untuk menampilkan data
-                ada_data_tidak_hadir = tampilkan_data_per_kategori(
-                    dataframe=df_tidak_hadir,
-                    kategori_filter=selected_kategori,
-                    semua_kategori_defs=kategori_usia_defs,
-                    kolom_tampil=kolom_tidak_hadir,
-                    judul_prefix="Tidak Hadir: " # Beri prefix agar jelas
-                )
+                if selected_kategori == "Tampilkan Semua":
+                    kategori_iterator_th = kategori_usia_defs.keys()
+                else:
+                    kategori_iterator_th = [selected_kategori]
                 
-                if not ada_data_tidak_hadir:
-                    st.success("Semua warga yang cocok dengan filter telah hadir, atau tidak ada data warga untuk ditampilkan.")
-            
+                ada_data_tidak_hadir_total = False
+                kolom_tidak_hadir = ['nama_lengkap', 'rt', 'blok'] # Kolom yang relevan
+
+                for nama_kategori in kategori_iterator_th:
+                    df_kategori_th = df_tidak_hadir[df_tidak_hadir['kategori_usia'] == nama_kategori]
+
+                    if not df_kategori_th.empty:
+                        ada_data_tidak_hadir_total = True
+                        st.markdown(f"#### Tidak Hadir: {nama_kategori}")
+                        
+                        df_display_th = df_kategori_th.reset_index(drop=True)
+                        df_display_th.index += 1
+                        
+                        # [UBAH] Ganti nama kolom sebelum ditampilkan
+                        df_renamed_th = df_display_th[kolom_tidak_hadir].rename(columns=COLUMN_MAPS)
+                        st.dataframe(df_renamed_th, use_container_width=True)
+                
+                if not ada_data_tidak_hadir_total:
+                    st.success("Semua warga yang cocok dengan filter telah hadir, atau tidak ada data warga untuk ditampilkan.")            
 
             # --- [TAMBAHKAN BLOK INI] Tombol untuk Mengunduh Laporan PDF ---
             st.divider()
