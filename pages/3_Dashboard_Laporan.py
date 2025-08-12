@@ -114,7 +114,7 @@ def generate_pdf_report(filters, metrics, df_rinci, fig_komposisi, fig_partisipa
     Fungsi ini menyertakan total row pada tabel komposisi dan urutan elemen yang disesuaikan.
     """
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=12, topMargin=72, bottomMargin=18)
     
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
