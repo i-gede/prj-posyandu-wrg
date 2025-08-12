@@ -739,10 +739,22 @@ def page_dashboard():
 
             # Persiapan data final untuk PDF
             # Pastikan kolom yang relevan dipilih
-            kolom_hadir_pdf = [
-                'kategori_usia', 'nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 
-                'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
-            ]
+
+            if nama_kategori in ["Dewasa (>18 - <60 thn)", "Lansia (≥60 thn)"]:
+                kolom_hadir_pdf = [
+                    'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
+                    'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
+                ]
+            else: # Untuk kategori lainnya (Bayi, Balita, dll.)
+                kolom_hadir_pdf = [
+                    'nama_lengkap', 'usia_teks', 'rt', 'blok', 'berat_badan_kg', 
+                    'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm'
+                ]
+
+            # kolom_hadir_pdf = [
+            #     'kategori_usia', 'nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 
+            #     'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
+            # ]
             kolom_tidak_hadir_pdf = ['kategori_usia', 'nama_lengkap', 'rt', 'blok']
 
             # Filter data sesuai pilihan di UI
