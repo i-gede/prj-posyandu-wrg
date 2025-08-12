@@ -617,37 +617,45 @@ def page_dashboard():
             # --- BLOK DATA WARGA HADIR (Sudah Rapi) ---
             with st.expander("Lihat Data Rinci Warga yang Hadir Posyandu"):
                 st.subheader(f"Data Rinci Warga yang Hadir pada {selected_date.strftime('%d %B %Y')}")
+                
+                # Tentukan kategori mana yang akan di-loop berdasarkan filter
+                if selected_kategori == "Tampilkan Semua":
+                    kategori_iterator = kategori_usia_defs.keys()
+                else:
+                    kategori_iterator = [selected_kategori]
+                    
+                ada_data_kunjungan_total = False
 
-                # 1. TENTUKAN KOLOM BERDASARKAN PILIHAN PENGGUNA (selected_kategori)
-                if selected_kategori in ["Bayi (0-6 bln)", "Baduta (>6 bln - 2 thn)", "Balita (>2 - 5 thn)", "Anak Pra-Sekolah (>5 - <6 thn)", "Tampilkan Semua"]:
-                    kolom_hadir = [
-                        'nama_lengkap', 'usia_teks', 'rt', 'blok', 'berat_badan_kg', 
-                        'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm'
-                    ]
-                else: # Ini untuk kategori Dewasa dan Lansia
-                    kolom_hadir = [
-                        'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
-                        'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
-                    ]
+                # Loop melalui setiap kategori yang relevan
+                for nama_kategori in kategori_iterator:
+                    df_kategori = df_merged[df_merged['kategori_usia'] == nama_kategori]
+                    
+                    if not df_kategori.empty:
+                        ada_data_kunjungan_total = True
+                        
+                        # --- INTI PERBAIKAN: Tentukan kolom yang benar UNTUK KATEGORI INI ---
+                        if nama_kategori in ["Dewasa (>18 - <60 thn)", "Lansia (≥60 thn)"]:
+                            kolom_tampil = [
+                                'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
+                                'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
+                            ]
+                        else: # Untuk kategori lainnya (Bayi, Balita, dll.)
+                            kolom_tampil = [
+                                'nama_lengkap', 'usia_teks', 'rt', 'blok', 'berat_badan_kg', 
+                                'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm'
+                            ]
+                        
+                        # Pastikan hanya kolom yang ada di DataFrame yang dipanggil
+                        kolom_valid = [kol for kol in kolom_tampil if kol in df_kategori.columns]
 
-                # kolom_hadir = [
-                #     'nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 
-                #     'berat_badan_kg', 'gula_darah', 'kolesterol'
-                # ]
+                        # Tampilkan judul dan tabel
+                        st.markdown(f"#### {nama_kategori}")
+                        df_display = df_kategori.reset_index(drop=True)
+                        df_display.index += 1
+                        st.dataframe(df_display[kolom_valid], use_container_width=True)
 
-                # 2. Pastikan hanya kolom yang ada di DataFrame yang dipanggil
-                kolom_valid_hadir = [kol for kol in kolom_hadir if kol in df_merged.columns]
-
-                # Panggil fungsi bantuan untuk menampilkan data
-                ada_data_kunjungan = tampilkan_data_per_kategori(
-                    dataframe=df_merged,
-                    kategori_filter=selected_kategori,
-                    semua_kategori_defs=kategori_usia_defs,
-                    kolom_tampil=kolom_valid_hadir,
-                    judul_prefix=""  # Tidak perlu prefix untuk yang hadir
-                )
-
-                if not ada_data_kunjungan:
+                # Tampilkan pesan jika tidak ada data sama sekali setelah loop selesai
+                if not ada_data_kunjungan_total:
                     st.info("Tidak ada data kunjungan (hadir) yang cocok dengan filter.")
 
             # --- BLOK DATA WARGA TIDAK HADIR (Sudah Rapi) ---
