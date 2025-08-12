@@ -79,7 +79,7 @@ def page_input_pemeriksaan():
 
         # === LANGKAH 3: FORM HANYA BERISI INPUT DATA & TOMBOL SUBMIT ===
         with st.form("pemeriksaan_form", clear_on_submit=True):
-            st.write(f"**Silakan Masukkan Hasil Pemeriksaan untuk `{selected_display_name}`**")
+            st.write(f"**Silakan Masukkan Hasil Pemeriksaan untuk `{selected_display_name - " (RT-" + df_warga['rt'].astype(str) + ", BLOK-" + df_warga['blok'].astype(str) + ")"}`**")
             
             # Inisialisasi variabel
             tensi_sistolik = tensi_diastolik = gula_darah = kolesterol = 0
