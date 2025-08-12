@@ -685,13 +685,17 @@ def page_dashboard():
                         # --- INTI PERBAIKAN: Tentukan kolom yang benar UNTUK KATEGORI INI ---
                         if nama_kategori in ["Dewasa (>18 - <60 thn)", "Lansia (≥60 thn)"]:
                             kolom_tampil = [
-                                'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
-                                'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
+                                'nama_lengkap', 'usia_teks', 'rt', 'blok', 
+                                'berat_badan_kg', 'tinggi_badan_cm', 
+                                'lingkar_lengan_cm', 'lingkar_perut_cm',
+                                'tensi_sistolik', 'tensi_diastolik', 
+                                'gula_darah', 'kolesterol'
                             ]
                         else: # Untuk kategori lainnya (Bayi, Balita, dll.)
                             kolom_tampil = [
-                                'nama_lengkap', 'usia_teks', 'rt', 'blok', 'berat_badan_kg', 
-                                'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm'
+                                'nama_lengkap', 'usia_teks', 'rt', 'blok', 
+                                'berat_badan_kg', 'tinggi_badan_cm', 
+                                'lingkar_lengan_cm', 'lingkar_kepala_cm'
                             ]
                         
                         # Pastikan hanya kolom yang ada di DataFrame yang dipanggil
