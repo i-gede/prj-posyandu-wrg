@@ -619,7 +619,7 @@ def page_dashboard():
                 st.subheader(f"Data Rinci Warga yang Hadir pada {selected_date.strftime('%d %B %Y')}")
 
                 # 1. TENTUKAN KOLOM BERDASARKAN PILIHAN PENGGUNA (selected_kategori)
-                if selected_kategori in ["Bayi (0-6 bln)", "Baduta (>6 bln - 2 thn)", "Balita (>2 - 5 thn)", "Anak Pra-Sekolah (>5 - <6 thn)", "Anak Usia Sekolah dan Remaja (6 - 18 thn)", "Tampilkan Semua"]:
+                if selected_kategori in ["Bayi (0-6 bln)", "Baduta (>6 bln - 2 thn)", "Balita (>2 - 5 thn)", "Anak Pra-Sekolah (>5 - <6 thn)"]:
                     kolom_hadir = [
                         'nama_lengkap', 'usia_teks', 'rt', 'blok', 'berat_badan_kg', 
                         'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm'
