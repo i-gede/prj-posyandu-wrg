@@ -26,17 +26,15 @@ if not supabase:
 
 ## <<< PERUBAHAN: Fungsi bantuan untuk menghitung umur
 def calculate_age(birth_date, reference_date):
-    """Menghitung umur dalam tahun."""
-    if birth_date is None:
-        return 0
-    # Mengonversi string tanggal lahir ke objek date
+    """Menghitung umur dalam tahun. Mengembalikan None jika tanggal lahir tidak valid."""
+    if not birth_date or not isinstance(birth_date, str):
+        return None
     try:
-        birth_date = datetime.strptime(birth_date, '%Y-%m-%d').date()
-    except (ValueError, TypeError):
-        # Jika format salah atau None, anggap sebagai anak-anak untuk keamanan data
-        return 0 
-    
-    age = reference_date.year - birth_date.year - ((reference_date.month, reference_date.day) < (birth_date.month, birth_date.day))
+        birth_date_obj = datetime.strptime(birth_date, '%Y-%m-%d').date()
+    except ValueError:
+        return None
+
+    age = reference_date.year - birth_date_obj.year - ((reference_date.month, reference_date.day) < (birth_date_obj.month, birth_date_obj.day))
     return age
 
 # --- FUNGSI HALAMAN UTAMA ---
@@ -45,7 +43,7 @@ def page_input_pemeriksaan():
     if not supabase: return
 
     try:
-        response = supabase.table("warga").select("id, nik, nama_lengkap, rt, blok, tanggal_lahir").execute()#11082025 nambah field tanggal_lahir
+        response = supabase.table("warga").select("id, nik, nama_lengkap, rt, blok, tanggal_lahir").execute()
         if not response.data:
             st.warning("Belum ada data warga. Silakan tambahkan data warga terlebih dahulu.")
             return
@@ -53,29 +51,41 @@ def page_input_pemeriksaan():
         df_warga = pd.DataFrame(response.data)
         df_warga['display_name'] = df_warga['nama_lengkap'] + " (RT-" + df_warga['rt'].astype(str) + ", BLOK-" + df_warga['blok'].astype(str) + ")"
         
-        with st.form("pemeriksaan_form", clear_on_submit=True):
-            tanggal_pemeriksaan = st.date_input("Tanggal Posyandu/Pemeriksaan", value=date.today())
-            selected_display_name = st.selectbox("Pilih Warga yang Hadir:", options=df_warga['display_name'])
-            
-            st.divider()
+        # === LANGKAH 1: Widget pemilihan ditaruh DI LUAR FORM ===
+        tanggal_pemeriksaan = st.date_input("Tanggal Posyandu/Pemeriksaan", value=date.today())
+        
+        # Pastikan tidak ada duplikat pada display_name untuk menghindari error
+        options_warga = df_warga['display_name'].unique().tolist()
+        selected_display_name = st.selectbox("Pilih Warga yang Hadir:", options=options_warga)
+        
+        # Ambil data lengkap warga yang dipilih
+        selected_warga_data = df_warga[df_warga['display_name'] == selected_display_name].iloc[0]
+        
+        st.divider()
 
-            ## <<< PERUBAHAN: Logika untuk menampilkan input berdasarkan umur 11082025
-            # Dapatkan data lengkap dari warga yang dipilih
-            selected_warga_data = df_warga[df_warga['display_name'] == selected_display_name].iloc[0]
+        # === LANGKAH 2: Lakukan pengecekan dan tampilkan info SEBELUM FORM ===
+        umur = calculate_age(selected_warga_data['tanggal_lahir'], tanggal_pemeriksaan)
+
+        # ---- Untuk Debugging (bisa dihapus nanti) ----
+        st.info("Informasi Debug:")
+        st.write(f"1. Nama Dipilih: `{selected_display_name}`")
+        st.write(f"2. Tanggal Lahir dari Database: `{selected_warga_data['tanggal_lahir']}`")
+        st.write(f"3. Umur Dihitung: `{umur}` tahun")
+        # ---- Akhir Debugging ----
+
+        if umur is None:
+            st.error(f"Data tanggal lahir untuk '{selected_display_name}' tidak ada atau formatnya salah di database. Mohon perbarui data warga.")
+            return
+
+        # === LANGKAH 3: FORM HANYA BERISI INPUT DATA & TOMBOL SUBMIT ===
+        with st.form("pemeriksaan_form", clear_on_submit=True):
+            st.write(f"**Silakan Masukkan Hasil Pemeriksaan untuk `{selected_display_name}`**")
             
-            # Hitung umur warga
-            umur = calculate_age(selected_warga_data['tanggal_lahir'], tanggal_pemeriksaan)
-            
-            # Inisialisasi semua variabel ke None atau 0
+            # Inisialisasi variabel
             tensi_sistolik = tensi_diastolik = gula_darah = kolesterol = 0
             berat_badan_kg = tinggi_badan_cm = lingkar_perut_cm = lingkar_lengan_cm = lingkar_kepala_cm = 0.0
-            catatan = ""
 
-            st.write("Masukkan hasil pemeriksaan:")
-            
-            # Jika umur di bawah 5 tahun (balita)
             if umur < 5:
-                st.info(f"Pasien terdeteksi sebagai balita (Umur: {umur} tahun). Menampilkan input khusus balita.")
                 col1, col2 = st.columns(2)
                 with col1:
                     berat_badan_kg = st.number_input("Berat Badan (kg)", min_value=0.0, step=0.1, format="%.2f")
@@ -83,10 +93,7 @@ def page_input_pemeriksaan():
                 with col2:
                     tinggi_badan_cm = st.number_input("Tinggi Badan (cm)", min_value=0.0, step=0.1, format="%.2f")
                     lingkar_kepala_cm = st.number_input("Lingkar Kepala (cm)", min_value=0.0, step=0.5, format="%.1f")
-            
-            # Jika umur 5 tahun atau lebih (dewasa)
             else:
-                st.info(f"Pasien terdeteksi sebagai dewasa (Umur: {umur} tahun).")
                 col1, col2 = st.columns(2)
                 with col1:
                     tensi_sistolik = st.number_input("Tensi Sistolik (mmHg)", min_value=0, step=1)
@@ -101,17 +108,18 @@ def page_input_pemeriksaan():
             
             catatan = st.text_area("Catatan Tambahan (Opsional)")
 
-            if st.form_submit_button("Simpan Hasil Pemeriksaan"):
-                warga_id = selected_warga_data['id']
+            submitted = st.form_submit_button("Simpan Hasil Pemeriksaan")
+            
+            if submitted:
+                warga_id = selected_warga_data['id'] # Variabel ini aman karena didefinisikan di luar form
                 
-                ## <<< PERUBAHAN: Data yang akan disimpan disesuaikan
                 data_to_insert = {
                     "tanggal_pemeriksaan": str(tanggal_pemeriksaan), "warga_id": warga_id,
                     "tensi_sistolik": int(tensi_sistolik), "tensi_diastolik": int(tensi_diastolik),
                     "berat_badan_kg": berat_badan_kg, "tinggi_badan_cm": tinggi_badan_cm,
                     "lingkar_perut_cm": lingkar_perut_cm, "lingkar_lengan_cm": lingkar_lengan_cm, 
-                    "gula_darah": int(gula_darah),"kolesterol": int(kolesterol), 
-                    "lingkar_kepala_cm": lingkar_kepala_cm, # Nilai akan 0 jika dewasa, dan terisi jika balita
+                    "gula_darah": int(gula_darah), "kolesterol": int(kolesterol), 
+                    "lingkar_kepala_cm": lingkar_kepala_cm,
                     "catatan": catatan
                 }
                 try:
@@ -121,7 +129,7 @@ def page_input_pemeriksaan():
                     st.error(f"Gagal menyimpan data pemeriksaan: {e}")
 
     except Exception as e:
-        st.error(f"Gagal mengambil daftar warga: {e}")
+        st.error(f"Terjadi kesalahan saat memuat data: {e}")
 
 # --- JALANKAN HALAMAN ---
 page_input_pemeriksaan()
