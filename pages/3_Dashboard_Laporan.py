@@ -809,29 +809,18 @@ def page_dashboard():
                 with st.spinner("Membuat laporan PDF... Mohon tunggu sebentar."):
 
                     # [UBAH] Ganti nama kolom untuk DataFrame yang akan dikirim ke PDF
-                    # df_rinci_pdf_renamed = df_data_rinci_pdf[kolom_hadir_pdf].rename(columns=COLUMN_MAPS)
-                    # df_tidak_hadir_pdf_renamed = df_tidak_hadir_pdf[kolom_tidak_hadir_pdf].rename(columns=COLUMN_MAPS)
+                    #df_rinci_pdf_renamed = df_data_rinci_pdf[kolom_hadir_pdf].rename(columns=COLUMN_MAPS)
+                    df_tidak_hadir_pdf_renamed = df_tidak_hadir_pdf[kolom_tidak_hadir_pdf].rename(columns=COLUMN_MAPS)
 
-                    # pdf_buffer = generate_pdf_report(
-                    #     filters=pdf_filters,
-                    #     metrics=pdf_metrics,
-                    #     df_rinci=df_rinci_pdf_renamed, # Gunakan DataFrame yang sudah di-rename
-                    #     fig_komposisi=fig_sunburst_komposisi if not df_komposisi.empty else None,
-                    #     fig_partisipasi=fig_sunburst_partisipasi if not df_partisipasi.empty else None,
-                    #     df_tidak_hadir=df_tidak_hadir_pdf_renamed, # Gunakan DataFrame yang sudah di-rename
-                    #     semua_kategori_defs=kategori_usia_defs,
-                    #     data_komposisi=baris_demografi
-                    # )
                     pdf_buffer = generate_pdf_report(
                         filters=pdf_filters,
                         metrics=pdf_metrics,
-                        df_rinci=df_data_rinci_pdf,                 # <-- Kirim data mentah, jangan dipotong
+                        df_rinci=df_data_rinci_pdf, # Gunakan DataFrame yang sudah di-rename
                         fig_komposisi=fig_sunburst_komposisi if not df_komposisi.empty else None,
                         fig_partisipasi=fig_sunburst_partisipasi if not df_partisipasi.empty else None,
-                        df_tidak_hadir=df_tidak_hadir_pdf,           # <-- Kirim data mentah
+                        df_tidak_hadir=df_tidak_hadir_pdf_renamed, # Gunakan DataFrame yang sudah di-rename
                         semua_kategori_defs=kategori_usia_defs,
-                        data_komposisi=baris_demografi,
-                        column_maps=COLUMN_MAPS                    # <-- Tambahkan argumen ini
+                        data_komposisi=baris_demografi
                     )
                     st.download_button(
                         label="✅ Laporan Siap! Klik untuk mengunduh",
