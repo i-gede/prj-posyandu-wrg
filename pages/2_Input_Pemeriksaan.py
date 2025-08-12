@@ -75,7 +75,7 @@ def page_input_pemeriksaan():
         age_tuple = calculate_age(selected_warga_data['tanggal_lahir'], tanggal_pemeriksaan)
 
         # ---- Untuk Debugging (bisa dihapus nanti) ----
-        st.info(f"Nama: {selected_display_name}, Tanggal Lahir: {selected_warga_data['tanggal_lahir']},Umur: {age_tuple[0]} Tahun {age_tuple[1]} Bulan")
+        st.info(f"Nama: {selected_display_name}, Tanggal Lahir: {selected_warga_data['tanggal_lahir']}, Umur: {age_tuple[0]} Tahun {age_tuple[1]} Bulan")
         #st.write(f"1. Nama Dipilih: `{selected_display_name}`")
         #st.write(f"2. Tanggal Lahir dari Database: `{selected_warga_data['tanggal_lahir']}`")
         #st.write(f"3. Umur Dihitung: `{umur}` tahun")
@@ -107,6 +107,14 @@ def page_input_pemeriksaan():
                 with col2:
                     tinggi_badan_cm = st.number_input("Tinggi Badan (cm)", min_value=0.0, step=0.1, format="%.2f")
                     lingkar_kepala_cm = st.number_input("Lingkar Kepala (cm)", min_value=0.0, step=0.5, format="%.1f")
+            elif umur_dalam_tahun < 15:
+                col1, col2 = st.columns(2)
+                with col1:
+                    berat_badan_kg = st.number_input("Berat Badan (kg)", min_value=0.0, step=0.1, format="%.2f")
+                    lingkar_lengan_cm = st.number_input("Lingkar Lengan (cm)", min_value=0.0, step=0.5, format="%.1f")
+                with col2:
+                    tinggi_badan_cm = st.number_input("Tinggi Badan (cm)", min_value=0.0, step=0.1, format="%.2f")
+                    #lingkar_kepala_cm = st.number_input("Lingkar Kepala (cm)", min_value=0.0, step=0.5, format="%.1f")
             else:
                 col1, col2 = st.columns(2)
                 with col1:
