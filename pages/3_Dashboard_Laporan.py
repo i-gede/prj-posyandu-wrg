@@ -607,6 +607,8 @@ def page_dashboard():
             # Tambahkan kolom kategori usia ke dataframe gabungan untuk filtering di bawah
             if not df_merged.empty:
                 df_merged['kategori_usia'] = df_merged['usia'].apply(get_kategori)
+                # BUAT JUGA KOLOM USIA DALAM BENTUK TEKS AGAR LEBIH INFORMATIF DI TABEL
+                df_merged['usia_teks'] = df_merged['usia'].apply(lambda u: f"{int(u)} thn" if u >= 1 else f"{int(u * 12)} bln")
 
             # --- [ AKHIR PERUBAHAN UTAMA ] ---
             
@@ -615,18 +617,33 @@ def page_dashboard():
             # --- BLOK DATA WARGA HADIR (Sudah Rapi) ---
             with st.expander("Lihat Data Rinci Warga yang Hadir Posyandu"):
                 st.subheader(f"Data Rinci Warga yang Hadir pada {selected_date.strftime('%d %B %Y')}")
-                
-                kolom_hadir = [
-                    'nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 
-                    'berat_badan_kg', 'gula_darah', 'kolesterol'
-                ]
-            
+
+                # 1. TENTUKAN KOLOM BERDASARKAN PILIHAN PENGGUNA (selected_kategori)
+                if selected_kategori in ["Bayi (0-6 bln)", "Baduta (>6 bln - 2 thn)", "Balita (>2 - 5 thn)", "Anak Pra-Sekolah (>5 - <6 thn)", "Anak Usia Sekolah dan Remaja (6 - 18 thn)", "Tampilkan Semua"]:
+                    kolom_hadir = [
+                        'nama_lengkap', 'usia_teks', 'rt', 'blok', 'berat_badan_kg', 
+                        'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm'
+                    ]
+                else: # Ini untuk kategori Dewasa dan Lansia
+                    kolom_hadir = [
+                        'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
+                        'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
+                    ]
+
+                # kolom_hadir = [
+                #     'nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 
+                #     'berat_badan_kg', 'gula_darah', 'kolesterol'
+                # ]
+
+                # 2. Pastikan hanya kolom yang ada di DataFrame yang dipanggil
+                kolom_valid_hadir = [kol for kol in kolom_hadir if kol in df_merged.columns]
+
                 # Panggil fungsi bantuan untuk menampilkan data
                 ada_data_kunjungan = tampilkan_data_per_kategori(
                     dataframe=df_merged,
                     kategori_filter=selected_kategori,
                     semua_kategori_defs=kategori_usia_defs,
-                    kolom_tampil=kolom_hadir,
+                    kolom_tampil=kolom_valid_hadir,
                     judul_prefix=""  # Tidak perlu prefix untuk yang hadir
                 )
 
