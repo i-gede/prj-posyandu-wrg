@@ -317,13 +317,13 @@ def page_dashboard():
         'usia_teks': 'Usia',
         'rt': 'RT',
         'blok': 'Blok',
-        'berat_badan_kg': 'Berat Badan (kg)',
-        'tinggi_badan_cm': 'Tinggi Badan (cm)',
-        'lingkar_lengan_cm': 'Lingkar Lengan (cm)',
-        'lingkar_kepala_cm': 'Lingkar Kepala (cm)',
-        'tensi_sistolik': 'Tensi Sistolik',
-        'tensi_diastolik': 'Tensi Diastolik',
-        'gula_darah': 'Gula Darah',
+        'berat_badan_kg': 'Berat Badan\n(kg)',
+        'tinggi_badan_cm': 'Tinggi Badan\n(cm)',
+        'lingkar_lengan_cm': 'Lingkar Lengan\n(cm)',
+        'lingkar_kepala_cm': 'Lingkar Kepala\n(cm)',
+        'tensi_sistolik': 'Tensi\nSistolik',
+        'tensi_diastolik': 'Tensi\nDiastolik',
+        'gula_darah': 'Gula\nDarah',
         'kolesterol': 'Kolesterol'
     }
 
