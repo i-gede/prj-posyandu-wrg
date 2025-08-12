@@ -714,7 +714,7 @@ def page_dashboard():
                     kategori_iterator_th = [selected_kategori]
                 
                 ada_data_tidak_hadir_total = False
-                kolom_tidak_hadir = ['nama_lengkap', 'rt', 'blok'] # Kolom yang relevan
+                kolom_tidak_hadir = ['nama_lengkap', 'usia_teks', 'rt', 'blok'] # Kolom yang relevan
 
                 for nama_kategori in kategori_iterator_th:
                     df_kategori_th = df_tidak_hadir[df_tidak_hadir['kategori_usia'] == nama_kategori]
