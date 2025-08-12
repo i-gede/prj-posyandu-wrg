@@ -616,11 +616,17 @@ def page_dashboard():
             with st.expander("Lihat Data Rinci Warga yang Hadir Posyandu"):
                 st.subheader(f"Data Rinci Warga yang Hadir pada {selected_date.strftime('%d %B %Y')}")
                 
+                if kategori_usia_defs == ["Bayi (0-6 bln)", "Baduta (>6 bln - 2 thn)", "Balita (>2 - 5 thn)"]:
                 # Definisikan kolom yang ingin ditampilkan untuk warga yang hadir
-                kolom_hadir = [
-                    'nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 
-                    'berat_badan_kg', 'gula_darah', 'kolesterol'
-                ]
+                    kolom_hadir = [
+                        'nama_lengkap', 'rt', 'blok', 'berat_badan_kg', 'tinggi_badan_cm', 
+                        'lingkar_lengan_cm', 'lingkar_kepala_cm'
+                    ]                 
+                else:
+                    kolom_hadir = [
+                        'nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 'tensi_diastolik', 
+                        'berat_badan_kg', 'gula_darah', 'kolesterol'
+                    ]
                 
                 # Panggil fungsi bantuan untuk menampilkan data
                 ada_data_kunjungan = tampilkan_data_per_kategori(
