@@ -4,6 +4,7 @@ import streamlit as st
 import pandas as pd
 from supabase import create_client
 from datetime import date, datetime
+from dateutil.relativedelta import relativedelta #11082025 untuk tampilan tahun..bulan
 
 # --- KONEKSI & KEAMANAN ---
 st.set_page_config(page_title="Input Pemeriksaan", page_icon="🗓️", layout="wide")
@@ -26,7 +27,10 @@ if not supabase:
 
 ## <<< PERUBAHAN: Fungsi bantuan untuk menghitung umur
 def calculate_age(birth_date, reference_date):
-    """Menghitung umur dalam tahun. Mengembalikan None jika tanggal lahir tidak valid."""
+    """
+    Menghitung umur dalam tahun dan bulan.
+    Mengembalikan tuple (tahun, bulan), atau None jika tanggal lahir tidak valid.
+    """
     if not birth_date or not isinstance(birth_date, str):
         return None
     try:
@@ -34,8 +38,10 @@ def calculate_age(birth_date, reference_date):
     except ValueError:
         return None
 
-    age = reference_date.year - birth_date_obj.year - ((reference_date.month, reference_date.day) < (birth_date_obj.month, birth_date_obj.day))
-    return age
+    # Hitung selisih waktu menggunakan relativedelta
+    delta = relativedelta(reference_date, birth_date_obj)
+    
+    return (delta.years, delta.months)
 
 # --- FUNGSI HALAMAN UTAMA ---
 def page_input_pemeriksaan():
@@ -64,18 +70,26 @@ def page_input_pemeriksaan():
         st.divider()
 
         # === LANGKAH 2: Lakukan pengecekan dan tampilkan info SEBELUM FORM ===
-        umur = calculate_age(selected_warga_data['tanggal_lahir'], tanggal_pemeriksaan)
+        #umur = calculate_age(selected_warga_data['tanggal_lahir'], tanggal_pemeriksaan)
+        # Sekarang 'age_tuple' akan berisi (tahun, bulan), contoh: (1, 3) atau (5, 11)
+        age_tuple = calculate_age(selected_warga_data['tanggal_lahir'], tanggal_pemeriksaan)
 
         # ---- Untuk Debugging (bisa dihapus nanti) ----
-        st.info(f"Nama: {selected_display_name}, Tanggal Lahir: {selected_warga_data['tanggal_lahir']},umur: {umur}")
+        st.info(f"Nama: {selected_display_name}, Tanggal Lahir: {selected_warga_data['tanggal_lahir']},Umur: {age_tuple[0]} Tahun {age_tuple[1]} Bulan")
         #st.write(f"1. Nama Dipilih: `{selected_display_name}`")
         #st.write(f"2. Tanggal Lahir dari Database: `{selected_warga_data['tanggal_lahir']}`")
         #st.write(f"3. Umur Dihitung: `{umur}` tahun")
         # ---- Akhir Debugging ----
 
-        if umur is None:
+        if age_tuple is None:
             st.error(f"Data tanggal lahir untuk '{selected_display_name}' tidak ada atau formatnya salah di database. Mohon perbarui data warga.")
             return
+        # Ekstrak tahun dan bulan untuk logika dan tampilan
+        tahun, bulan = age_tuple
+        umur_dalam_tahun = tahun # Tetap gunakan ini untuk logika if-else
+
+        # Format string umur untuk ditampilkan di UI
+        umur_display_string = f"{tahun} Tahun {bulan} Bulan"
 
         # === LANGKAH 3: FORM HANYA BERISI INPUT DATA & TOMBOL SUBMIT ===
         with st.form("pemeriksaan_form", clear_on_submit=True):
@@ -85,7 +99,7 @@ def page_input_pemeriksaan():
             tensi_sistolik = tensi_diastolik = gula_darah = kolesterol = 0
             berat_badan_kg = tinggi_badan_cm = lingkar_perut_cm = lingkar_lengan_cm = lingkar_kepala_cm = 0.0
 
-            if umur < 5:
+            if umur_dalam_tahun < 5:
                 col1, col2 = st.columns(2)
                 with col1:
                     berat_badan_kg = st.number_input("Berat Badan (kg)", min_value=0.0, step=0.1, format="%.2f")
