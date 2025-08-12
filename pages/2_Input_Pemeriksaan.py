@@ -67,7 +67,7 @@ def page_input_pemeriksaan():
         umur = calculate_age(selected_warga_data['tanggal_lahir'], tanggal_pemeriksaan)
 
         # ---- Untuk Debugging (bisa dihapus nanti) ----
-        st.info(f"`{selected_display_name}`, Tanggal Lahir: `{selected_warga_data['tanggal_lahir']}`,umur: '{umur}'")
+        st.info(f"Nama: {selected_display_name}, Tanggal Lahir: {selected_warga_data['tanggal_lahir']},umur: {umur}")
         #st.write(f"1. Nama Dipilih: `{selected_display_name}`")
         #st.write(f"2. Tanggal Lahir dari Database: `{selected_warga_data['tanggal_lahir']}`")
         #st.write(f"3. Umur Dihitung: `{umur}` tahun")
