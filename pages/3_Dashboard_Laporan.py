@@ -738,20 +738,7 @@ def page_dashboard():
             st.subheader("📥⬇️ Unduh Laporan")
 
             # Persiapan data final untuk PDF
-            # Pastikan kolom yang relevan dipilih
-            if kategori_usia_defs == "Lansia (≥60 thn)":
-                kolom_hadir_pdf = [
-                    'kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
-                    'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
-                ]
-            else:
-                kolom_hadir_pdf = [
-                    'kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok', 
-                    'berat_badan_kg', 'tinggi_badan_cm'
-                ]
-            kolom_tidak_hadir_pdf = ['kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok']
-
-            # Filter data sesuai pilihan di UI
+            #         # Filter data sesuai pilihan di UI
             df_data_rinci_pdf = df_merged.copy()
             if selected_kategori != "Tampilkan Semua":
                 df_data_rinci_pdf = df_data_rinci_pdf[df_data_rinci_pdf['kategori_usia'] == selected_kategori]
@@ -759,6 +746,35 @@ def page_dashboard():
             df_tidak_hadir_pdf = df_tidak_hadir.copy()
             if selected_kategori != "Tampilkan Semua":
                 df_tidak_hadir_pdf = df_tidak_hadir_pdf[df_tidak_hadir_pdf['kategori_usia'] == selected_kategori]
+
+            # Tentukan kolom yang akan ditampilkan di PDF berdasarkan filter
+            # INI ADALAH LOGIKA YANG DIPERBAIKI DAN LEBIH KONSISTEN
+            if selected_kategori in ["Dewasa (>18 - <60 thn)", "Lansia (≥60 thn)"]:
+                kolom_hadir_pdf = [
+                    'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
+                    'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
+                ]
+            else: # Untuk kategori lainnya (Bayi, Balita, dll.) atau "Tampilkan Semua"
+                kolom_hadir_pdf = [
+                    'nama_lengkap', 'usia_teks', 'rt', 'blok', 'berat_badan_kg', 
+                    'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm'
+                ]
+
+            kolom_tidak_hadir_pdf = ['nama_lengkap', 'usia_teks', 'rt', 'blok']
+
+            # Pastikan hanya kolom yang ada yang dipilih untuk menghindari error
+            valid_kolom_hadir = [col for col in kolom_hadir_pdf if col in df_data_rinci_pdf.columns]
+            valid_kolom_tidak_hadir = [col for col in kolom_tidak_hadir_pdf if col in df_tidak_hadir_pdf.columns]
+
+
+            # # Filter data sesuai pilihan di UI
+            # df_data_rinci_pdf = df_merged.copy()
+            # if selected_kategori != "Tampilkan Semua":
+            #     df_data_rinci_pdf = df_data_rinci_pdf[df_data_rinci_pdf['kategori_usia'] == selected_kategori]
+            
+            # df_tidak_hadir_pdf = df_tidak_hadir.copy()
+            # if selected_kategori != "Tampilkan Semua":
+            #     df_tidak_hadir_pdf = df_tidak_hadir_pdf[df_tidak_hadir_pdf['kategori_usia'] == selected_kategori]
 
             # Kumpulkan filter dan metrik untuk PDF
             pdf_filters = {
@@ -786,8 +802,12 @@ def page_dashboard():
                 with st.spinner("Membuat laporan PDF... Mohon tunggu sebentar."):
 
                     # [UBAH] Ganti nama kolom untuk DataFrame yang akan dikirim ke PDF
-                    df_rinci_pdf_renamed = df_data_rinci_pdf[kolom_hadir_pdf].rename(columns=COLUMN_MAPS)
-                    df_tidak_hadir_pdf_renamed = df_tidak_hadir_pdf[kolom_tidak_hadir_pdf].rename(columns=COLUMN_MAPS)
+                    # df_rinci_pdf_renamed = df_data_rinci_pdf[kolom_hadir_pdf].rename(columns=COLUMN_MAPS)
+                    # df_tidak_hadir_pdf_renamed = df_tidak_hadir_pdf[kolom_tidak_hadir_pdf].rename(columns=COLUMN_MAPS)
+
+                    # Rename kolom SEBELUM dikirim ke fungsi PDF
+                    df_rinci_pdf_renamed = df_data_rinci_pdf[valid_kolom_hadir].rename(columns=COLUMN_MAPS)
+                    df_tidak_hadir_pdf_renamed = df_tidak_hadir_pdf[valid_kolom_tidak_hadir].rename(columns=COLUMN_MAPS)
 
                     pdf_buffer = generate_pdf_report(
                         filters=pdf_filters,
