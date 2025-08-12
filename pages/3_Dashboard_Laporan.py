@@ -741,10 +741,10 @@ def page_dashboard():
             # Pastikan kolom yang relevan dipilih
 
             kolom_hadir_pdf = [
-                'kategori_usia', 'nama_lengkap', 'rt', 'blok', 'tensi_sistolik', 
+                'kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
                 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
             ]
-            kolom_tidak_hadir_pdf = ['kategori_usia', 'nama_lengkap', 'rt', 'blok']
+            kolom_tidak_hadir_pdf = ['kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok']
 
             # Filter data sesuai pilihan di UI
             df_data_rinci_pdf = df_merged.copy()
