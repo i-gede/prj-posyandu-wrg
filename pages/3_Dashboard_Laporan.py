@@ -741,24 +741,19 @@ def page_dashboard():
             # Pastikan kolom yang relevan dipilih
 
 
-            # Loop melalui setiap kategori yang relevan
-            for nama_kategori in kategori_iterator:
-                df_kategori = df_merged[df_merged['kategori_usia'] == nama_kategori]
-                
-                if not df_kategori.empty:
-                    ada_data_kunjungan_total = True
-                    
-                    # --- INTI PERBAIKAN: Tentukan kolom yang benar UNTUK KATEGORI INI ---
-                    if nama_kategori in ["Dewasa (>18 - <60 thn)", "Lansia (≥60 thn)"]:
-                        kolom_hadir_pdf = [
-                            'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
-                            'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
-                        ]
-                    else: # Untuk kategori lainnya (Bayi, Balita, dll.)
-                        kolom_hadir_pdf = [
-                            'nama_lengkap', 'usia_teks', 'rt', 'blok', 'berat_badan_kg', 
-                            'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm'
-                        ]
+            for kategori in kategori_usia_defs:
+                # Memeriksa apakah kunci saat ini sama dengan string target
+                if kategori == "Dewasa (>18 - <60 thn)":
+                    # Jika sama, eksekusi perintah di sini
+                    kolom_hadir_pdf = [
+                        'kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
+                        'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol'
+                    ]
+                else:
+                    kolom_hadir_pdf = [
+                        'kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok',  
+                        'berat_badan_kg', 'lingkar_kepala_cm'
+                    ]                    
 
             # kolom_hadir_pdf = [
             #     'kategori_usia', 'nama_lengkap', 'usia_teks', 'rt', 'blok', 'tensi_sistolik', 
