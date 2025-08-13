@@ -234,9 +234,9 @@ def create_growth_chart(ax: plt.Axes, chart_type: str, history_df: pd.DataFrame,
     if 'age_range_label' in range_cfg:
         title_text += f" ({range_cfg['age_range_label']})"
         
-    ax.set_title(title_text, pad=20, fontsize=16)
-    ax.set_xlabel(cfg.get('x_axis_label') or range_cfg.get('x_label'), fontsize=12)
-    ax.set_ylabel(cfg['y_label'], fontsize=12)
+    ax.set_title(title_text, pad=20, fontsize=16, color='white', fontweight='bold')
+    ax.set_xlabel(cfg.get('x_axis_label') or range_cfg.get('x_label'), fontsize=12, color='white')
+    ax.set_ylabel(cfg['y_label'], fontsize=12, color='white')
     
     ax.set_xlim(range_cfg["xlim"])
     ax.set_ylim(range_cfg["ylim"])
