@@ -228,7 +228,7 @@ def create_growth_chart(ax: plt.Axes, chart_type: str, history_df: pd.DataFrame,
 
     # Anotasi dan Label
     props = dict(boxstyle='round', facecolor=color, alpha=0.8)
-    ax.text(0.03, 0.97, f"Interpretasi: {interpretation}", transform=ax.transAxes, fontsize=12, va='top', bbox=props)
+    ax.text(0.03, 0.97, f"Interpretasi: {interpretation}", transform=ax.transAxes, fontsize=12, color='white', va='top', bbox=props)
 
     title_text = f"Grafik {cfg['title']} - {'Perempuan' if gender == 'P' else 'Laki-laki'}"
     if 'age_range_label' in range_cfg:
@@ -254,9 +254,11 @@ def create_growth_chart(ax: plt.Axes, chart_type: str, history_df: pd.DataFrame,
 
     ax.grid(which='major', linestyle='-', linewidth='0.8', color='gray')
     ax.grid(which='minor', axis='y', linestyle=':', linewidth='0.5', color='lightgray')
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
-
+    
+    # ax.tick_params(axis='x', colors='white')
+    # ax.tick_params(axis='y', colors='white')
+    ax.tick_params(which='major', axis='x', labelcolor='white', length=0)
+    ax.tick_params(which='major', axis='y', labelcolor='white', length=0)
     ax2.tick_params(which='both', axis='y', labelcolor='white', length=0)
 
     ax.legend(loc='lower right')
