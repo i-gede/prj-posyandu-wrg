@@ -1,5 +1,5 @@
 # data_utils.py
-
+from dateutil.relativedelta import relativedelta #13082025 untuk akomodasi format ..Tahun...Bulan
 # ... (kode load_raw_data tetap ada di atas) ...
 
 def calculate_age(dataframe, reference_date):
@@ -22,3 +22,14 @@ def calculate_age(dataframe, reference_date):
     # Logika perhitungan usia sekarang ada di satu tempat
     df_copy['usia'] = (pd.to_datetime(reference_date) - df_copy['tanggal_lahir']).dt.days / 365.25
     return df_copy
+
+
+def format_usia_teks(tgl_lahir, tgl_referensi): #12082025 tambahan fungsi untuk ..Tahun..Bulan
+    """
+    Mengubah tanggal lahir menjadi format string 'X Tahun Y Bulan'.
+    Bekerja dengan objek datetime dari Pandas.
+    """
+    if pd.isna(tgl_lahir):
+        return "N/A"
+    delta = relativedelta(tgl_referensi, tgl_lahir)
+    return f"{delta.years} Thn {delta.months} Bln"

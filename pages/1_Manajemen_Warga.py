@@ -5,12 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from supabase import create_client
 from datetime import date, datetime
-import importlib
-
-# 2. Gunakan importlib.import_module() untuk mengimpor file sebagai modul
-#    Masukkan nama file sebagai string, tanpa ekstensi .py
-dashboard_laporan_modul = importlib.import_module("3_Dashboard_Laporan")
-
+from data_utils import format_usia_teks
 
 # --- KONEKSI & KEAMANAN ---
 st.set_page_config(page_title="Manajemen Warga", page_icon="👨‍👩‍👧‍👦", layout="wide")
@@ -156,7 +151,7 @@ def page_manajemen_warga():
                 df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data)
 
                 df_pemeriksaan['usia_thn_bln'] = df_pemeriksaan['tanggal_lahir'].apply(
-                    lambda tgl: dashboard_laporan_modul.format_usia_string(tgl, df_pemeriksaan['tanggal_pemeriksaan'])
+                    lambda tgl: format_usia_teks(tgl, df_pemeriksaan['tanggal_pemeriksaan'])
                 ) #13082025 tambahkolom usia dalam tahun bulan
 
                 st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'usia_thn_bln', 'berat_badan_kg', 'tinggi_badan_kg', 'lingkar_lengan_cm', 'lingkar_kepala_cm', 'tensi_sistolik', 'tensi_diastolik', 'gula_darah', 'kolesterol']])
