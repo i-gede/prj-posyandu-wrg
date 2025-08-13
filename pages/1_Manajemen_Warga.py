@@ -154,7 +154,7 @@ def page_manajemen_warga():
                 #     lambda tgl: format_usia_teks(tgl, df_pemeriksaan['tanggal_pemeriksaan'])
                 # ) #13082025 tambahkolom usia dalam tahun bulan
 
-                st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'berat_badan_kg', 'tinggi_badan_kg', 'lingkar_lengan_cm', 'lingkar_kepala_cm', 'tensi_sistolik', 'tensi_diastolik', 'gula_darah', 'kolesterol']])
+                st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'berat_badan_kg', 'lingkar_lengan_cm', 'lingkar_kepala_cm', 'tensi_sistolik', 'tensi_diastolik', 'gula_darah', 'kolesterol']])
 
                 plot_individual_trends(df_pemeriksaan)
 
