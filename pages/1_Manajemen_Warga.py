@@ -212,6 +212,7 @@ def create_growth_chart(ax: plt.Axes, chart_type: str, history_df: pd.DataFrame,
     st.info(f"**{cfg['title']}:** {interpretation}")
 
     fig = ax.figure
+    fig.set_facecolor('hotpink' if gender == 'P' else 'steelblue')
     x_smooth = np.linspace(df_std['x_std'].min(), df_std['x_std'].max(), 300)
     smooth_data = {col: func(x_smooth) for col, func in poly_funcs.items()}
 
