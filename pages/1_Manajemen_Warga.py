@@ -3,9 +3,11 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 from supabase import create_client
 from datetime import date, datetime
-# from data_utils import format_usia_teks
+from matplotlib.ticker import MultipleLocator
+from typing import Dict, Any, Tuple
 
 # --- KONEKSI & KEAMANAN ---
 st.set_page_config(page_title="Manajemen Warga", page_icon="👨‍👩‍👧‍👦", layout="wide")
@@ -57,7 +59,215 @@ def hitung_usia_saat_periksa(tanggal_lahir_warga, tanggal_pemeriksaan):
         # Mengembalikan N/A jika ada masalah dengan format tanggal
         return "N/A"
 
-# --- FUNGSI-FUNGSI PEMBANTU ---
+
+# ==============================================================================
+# BAGIAN KODE UNTUK GRAFIK KMS (0-5 TAHUN)
+# ==============================================================================
+
+# --- KONFIGURASI KURVA PERTUMBUHAN WHO ---
+CONFIG: Dict[str, Dict[str, Any]] = {
+    "wfa": {
+        "title": "Berat Badan menurut Umur", "y_col": "berat_kg", "y_label": "Berat Badan (kg)",
+        "interpretation_func": lambda berat, z: get_interpretation_wfa(berat, z),
+        "ranges": [
+            {"max_age": 24, "xlim": (0, 24), "ylim": (0, 18), "x_major": 1, "y_major": 1, "age_range_label": "0-24 Bulan"},
+            {"max_age": 61, "xlim": (24, 60), "ylim": (7, 30), "x_major": 1, "y_major": 1, "age_range_label": "24-60 Bulan"},
+        ],
+        "file_pattern": "wfa_{gender}_0-to-5-years_zscores.xlsx", "x_axis_label": "Umur (Bulan)",
+    },
+    "wfh": {
+        "title": "Berat Badan menurut Tinggi/Panjang Badan", "x_col": "tinggi_cm", "y_col": "berat_kg", "y_label": "Berat Badan (kg)",
+        "interpretation_func": lambda berat, z: get_interpretation_wfh(berat, z),
+        "ranges": [
+            {"max_age": 24, "file_key": "wfl", "x_col_std": "Length", "x_label": "Panjang Badan (cm)", "xlim": (45, 110), "ylim": (1, 25), "x_major": 5, "y_major": 2},
+            {"max_age": 61, "file_key": "wfh", "x_col_std": "Height", "x_label": "Tinggi Badan (cm)", "xlim": (65, 120), "ylim": (5, 31), "x_major": 5, "y_major": 2},
+        ],
+        "file_pattern": "{file_key}_{gender}_{age_group}_zscores.xlsx",
+    },
+    "bmi": {
+        "title": "Indeks Massa Tubuh (IMT) menurut Umur", "y_col": "bmi", "y_label": "IMT (kg/m²)",
+        "interpretation_func": lambda bmi, z: get_interpretation_bmi(bmi, z),
+        "ranges": [
+            {"max_age": 24, "xlim": (0, 24), "ylim": (9, 23), "x_major": 1, "y_major": 1, "age_range_label": "0-24 Bulan"},
+            {"max_age": 61, "xlim": (24, 60), "ylim": (11.6, 21), "x_major": 2, "y_major": 1, "age_range_label": "24-60 Bulan"},
+        ],
+        "file_pattern": "bmi_{gender}_{age_group}_zscores.xlsx", "x_axis_label": "Umur (Bulan)",
+    },
+    "lhfa": {
+        "title": "Panjang/Tinggi Badan menurut Umur", "y_col": "tinggi_cm", "y_label": "Panjang/Tinggi Badan (cm)",
+        "interpretation_func": lambda tinggi, z: get_interpretation_lhfa(tinggi, z),
+        "ranges": [
+            {"max_age": 24, "xlim": (0, 24), "ylim": (43, 100), "x_major": 1, "y_major": 5, "age_range_label": "0-24 Bulan"},
+            {"max_age": 61, "xlim": (24, 60), "ylim": (76, 125), "x_major": 2, "y_major": 5, "age_range_label": "2-5 Tahun"},
+        ],
+        "file_pattern": "lhfa_{gender}_{age_group}_zscores.xlsx", "x_axis_label": "Umur (Bulan)",
+    },
+    "hcfa": {
+        "title": "Lingkar Kepala menurut Umur", "y_col": "lingkar_kepala_cm", "y_label": "Lingkar Kepala (cm)",
+        "interpretation_func": lambda hc, z: get_interpretation_hcfa(hc, z),
+        "ranges": [
+            {"max_age": 24, "xlim": (0, 24), "ylim": (32, 52), "x_major": 1, "y_major": 1, "age_range_label": "0-24 Bulan"},
+            {"max_age": 61, "xlim": (24, 60), "ylim": (42, 56), "x_major": 2, "y_major": 1, "age_range_label": "2-5 Tahun"},
+        ],
+        "file_pattern": "hcfa_{gender}_0-to-5-years-zscores.xlsx", "x_axis_label": "Umur (Bulan)",
+    },
+}
+
+# --- FUNGSI-FUNGSI PEMBANTU UNTUK KMS ---
+
+@st.cache_data(ttl=3600)
+def load_who_data(file_path: str) -> pd.DataFrame:
+    """Memuat dan menyimpan cache data dari file Excel standar WHO."""
+    try:
+        return pd.read_excel(file_path)
+    except FileNotFoundError:
+        st.error(f"File standar WHO tidak ditemukan: {file_path}. Pastikan file ada di direktori aplikasi.")
+        return None
+
+def calculate_age_in_months(birth_date: date, measurement_date: date) -> int:
+    """Menghitung usia dalam bulan penuh."""
+    if isinstance(birth_date, str):
+        birth_date = datetime.strptime(birth_date, '%Y-%m-%d').date()
+    if isinstance(measurement_date, str):
+        measurement_date = datetime.fromisoformat(measurement_date.replace('Z', '+00:00')).date()
+    
+    return (measurement_date.year - birth_date.year) * 12 + (measurement_date.month - birth_date.month)
+
+def calculate_bmi(weight_kg: float, height_cm: float) -> float:
+    """Menghitung Indeks Massa Tubuh (IMT)."""
+    if height_cm == 0 or weight_kg == 0:
+        return 0.0
+    return weight_kg / ((height_cm / 100) ** 2)
+
+# --- FUNGSI INTERPRETASI STATUS GIZI ---
+def get_interpretation_wfa(berat_anak: float, z: Dict) -> Tuple[str, str]:
+    if berat_anak > z['SD3']: return "Berat badan sangat lebih", 'red'
+    elif berat_anak > z['SD2']: return "Berat badan lebih", 'yellow'
+    elif berat_anak >= z['SD2neg']: return "Berat badan normal", 'forestgreen'
+    elif berat_anak > z['SD3neg']: return "Berat badan kurang", 'yellow'
+    else: return "Berat badan sangat kurang (Underweight)", 'red'
+
+def get_interpretation_wfh(berat_anak: float, z: Dict) -> Tuple[str, str]:
+    if berat_anak > z['SD3']: return "Gizi lebih (Obesitas)", 'red'
+    elif berat_anak > z['SD2']: return "Berisiko gizi lebih (Overweight)", 'yellow'
+    elif berat_anak >= z['SD2neg']: return "Gizi baik (Normal)", 'forestgreen'
+    elif berat_anak >= z['SD3neg']: return "Gizi kurang (Wasting)", 'yellow'
+    else: return "Gizi buruk (Severe Wasting)", 'red'
+
+def get_interpretation_bmi(bmi_anak: float, z: Dict) -> Tuple[str, str]:
+    if bmi_anak > z['SD3']: return "Gizi lebih (Obesitas)", 'red'
+    elif bmi_anak > z['SD2']: return "Berisiko gizi lebih (Overweight)", 'yellow'
+    elif bmi_anak >= z['SD2neg']: return "Gizi baik (Normal)", 'forestgreen'
+    elif bmi_anak >= z['SD3neg']: return "Gizi kurang (Wasting)", 'yellow'
+    else: return "Gizi buruk (Severe Wasting)", 'red'
+
+def get_interpretation_lhfa(panjang_anak: float, z: Dict) -> Tuple[str, str]:
+    if panjang_anak > z['SD2']: return "Tinggi", 'forestgreen'
+    elif panjang_anak >= z['SD2neg']: return "Normal", 'forestgreen'
+    elif panjang_anak >= z['SD3neg']: return "Pendek (Stunting)", 'yellow'
+    else: return "Sangat Pendek (Severe Stunting)", 'red'
+
+def get_interpretation_hcfa(hc_anak: float, z: Dict) -> Tuple[str, str]:
+    if hc_anak > z['SD2']: return "Makrosefali", 'yellow'
+    elif hc_anak >= z['SD2neg']: return "Normal", 'forestgreen'
+    else: return "Mikrosefali", 'yellow'
+
+# --- FUNGSI PLOTTING UTAMA UNTUK KMS ---
+def create_growth_chart(ax: plt.Axes, chart_type: str, history_df: pd.DataFrame, gender: str, latest_data: pd.Series):
+    cfg = CONFIG[chart_type]
+    is_age_based = cfg.get("x_axis_label", "").endswith("(Bulan)")
+    x_col = cfg.get("x_col", "usia_bulan")
+    y_col = cfg["y_col"]
+    
+    x_latest = latest_data[x_col]
+    y_latest = latest_data[y_col]
+    
+    if y_latest is None or y_latest <= 0:
+        ax.text(0.5, 0.5, 'Data tidak tersedia', horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+        ax.set_title(f"Grafik {cfg['title']}", pad=20, fontsize=16)
+        return
+
+    if is_age_based:
+        range_cfg = next((r for r in cfg["ranges"] if x_latest < r["max_age"]), cfg["ranges"][-1])
+        age_group_map = {24: "0-to-2-years", 61: "2-to-5-years"}
+        age_group = next((v for k, v in age_group_map.items() if x_latest < k), "2-to-5-years")
+        file_name = cfg["file_pattern"].format(gender="girls" if gender == 'P' else "boys", age_group=age_group)
+        x_col_std = "Month"
+    else: 
+        range_cfg = next((r for r in cfg["ranges"] if latest_data['usia_bulan'] < r["max_age"]), cfg["ranges"][-1])
+        age_group_map = {24: "0-to-2-years", 61: "2-to-5-years"}
+        age_group = next((v for k, v in age_group_map.items() if latest_data['usia_bulan'] < k), "2-to-5-years")
+        file_name = cfg["file_pattern"].format(file_key=range_cfg["file_key"], gender="girls" if gender == 'P' else "boys", age_group=age_group)
+        x_col_std = range_cfg["x_col_std"]
+        
+    df_std = load_who_data(f"data/{file_name}")
+    if df_std is None: return
+    
+    df_std = df_std.rename(columns={x_col_std: 'x_std'}).sort_values('x_std').drop_duplicates('x_std')
+    z_cols = ['SD3neg', 'SD2neg', 'SD1neg', 'SD0', 'SD1', 'SD2', 'SD3']
+    poly_funcs = {col: np.poly1d(np.polyfit(df_std['x_std'], df_std[col], 5)) for col in z_cols}
+    z_scores_at_point = {col: func(x_latest) for col, func in poly_funcs.items()}
+    
+    interpretation, color = cfg["interpretation_func"](y_latest, z_scores_at_point)
+    st.info(f"**{cfg['title']}:** {interpretation}")
+
+    fig = ax.figure
+    x_smooth = np.linspace(df_std['x_std'].min(), df_std['x_std'].max(), 300)
+    smooth_data = {col: func(x_smooth) for col, func in poly_funcs.items()}
+
+    ax.fill_between(x_smooth, smooth_data['SD3neg'], smooth_data['SD2neg'], color='yellow', alpha=0.5)
+    ax.fill_between(x_smooth, smooth_data['SD2neg'], smooth_data['SD2'], color='green', alpha=0.4)
+    ax.fill_between(x_smooth, smooth_data['SD2'], smooth_data['SD3'], color='yellow', alpha=0.5)
+    
+    for col, data in smooth_data.items():
+        ax.plot(x_smooth, data, color='red' if col in ['SD3', 'SD3neg'] else 'black', lw=1, alpha=0.8)
+
+    ax.plot(history_df[x_col].astype(float), history_df[y_col].astype(float), marker='o', linestyle='-', color='darkviolet', label='Riwayat Pertumbuhan')
+    ax.scatter(x_latest, y_latest, marker='*', c='cyan', s=300, ec='black', zorder=10, label='Pengukuran Terakhir')
+
+    title_text = f"Grafik {cfg['title']} - {'Perempuan' if gender == 'P' else 'Laki-laki'}"
+    if 'age_range_label' in range_cfg:
+        title_text += f" ({range_cfg['age_range_label']})"
+        
+    ax.set_title(title_text, pad=20, fontsize=16)
+    ax.set_xlabel(cfg.get('x_axis_label') or range_cfg.get('x_label'), fontsize=12)
+    ax.set_ylabel(cfg['y_label'], fontsize=12)
+    
+    ax.set_xlim(range_cfg["xlim"])
+    ax.set_ylim(range_cfg["ylim"])
+    ax.xaxis.set_major_locator(MultipleLocator(range_cfg["x_major"]))
+    ax.yaxis.set_major_locator(MultipleLocator(range_cfg["y_major"]))
+    ax.grid(which='major', linestyle='-', linewidth='0.8', color='gray')
+    ax.grid(which='minor', axis='y', linestyle=':', linewidth='0.5', color='lightgray')
+    ax.legend(loc='lower right')
+    fig.tight_layout()
+
+def plot_all_kms_curves(history_df: pd.DataFrame):
+    """Fungsi utama untuk menampilkan semua kurva pertumbuhan KMS."""
+    st.subheader("📈 Grafik Pertumbuhan Anak (KMS)")
+    if history_df.empty:
+        st.warning("Data riwayat tidak tersedia untuk membuat grafik.")
+        return
+
+    # Siapkan data
+    history_df['bmi'] = history_df.apply(lambda row: calculate_bmi(row['berat_kg'], row['tinggi_cm']), axis=1)
+    latest_data = history_df.sort_values(by='usia_bulan').iloc[-1]
+    gender = latest_data['jenis_kelamin']
+
+    charts_to_plot = ["wfa", "lhfa", "wfh", "bmi", "hcfa"]
+    for chart_type in charts_to_plot:
+        st.markdown("---")
+        fig, ax = plt.subplots(figsize=(12, 7))
+        try:
+            create_growth_chart(ax, chart_type, history_df, gender, latest_data)
+            st.pyplot(fig)
+        except Exception as e:
+            st.error(f"Gagal membuat grafik {chart_type.upper()}: {e}")
+        plt.close(fig)
+
+# ==============================================================================
+# BAGIAN KODE UNTUK GRAFIK TREN UMUM (DI ATAS 5 TAHUN)
+# ==============================================================================
 def plot_individual_trends(df_pemeriksaan):
     st.subheader("📈 Grafik Tren Kesehatan Individu")
     df_pemeriksaan['tanggal_pemeriksaan'] = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan'])
@@ -72,7 +282,9 @@ def plot_individual_trends(df_pemeriksaan):
         fig, ax = plt.subplots(figsize=(6, 4)); ax.plot(df_pemeriksaan['tanggal_pemeriksaan'], df_pemeriksaan['kolesterol'], marker='o', color='purple'); ax.set_title("Tren Kolesterol"); ax.set_ylabel("mg/dL"); ax.grid(True, linestyle=':'); plt.xticks(rotation=45); fig.tight_layout(); st.pyplot(fig)
 
 
-# --- FUNGSI HALAMAN UTAMA ---
+# ==============================================================================
+# FUNGSI HALAMAN UTAMA (MANAJEMEN WARGA)
+# ==============================================================================
 def page_manajemen_warga():
     st.header("👨‍👩‍👧‍👦 Manajemen Data Warga")
     if not supabase: return
@@ -179,7 +391,7 @@ def page_manajemen_warga():
             if not pemeriksaan_response.data:
                 st.info("Warga ini belum memiliki riwayat pemeriksaan.")
             else:
-                df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data)
+                df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data).fillna(0)
 
                 # # df_pemeriksaan['usia_thn_bln'] = df_pemeriksaan['tanggal_lahir'].apply(
                 # #     lambda tgl: format_usia_teks(tgl, df_pemeriksaan['tanggal_pemeriksaan'])
@@ -215,7 +427,33 @@ def page_manajemen_warga():
                 st.dataframe(df_pemeriksaan[kolom_tampil], use_container_width=True)
                 # === AKHIR PERUBAHAN ===
 
-                plot_individual_trends(df_pemeriksaan)
+                # --- MODIFIKASI DIMULAI DI SINI: LOGIKA KONDISIONAL UNTUK GRAFIK ---
+                # 1. Hitung usia pada pemeriksaan terakhir dalam bulan
+                latest_exam_date = pd.to_datetime(df_pemeriksaan['tanggal_pemeriksaan'].iloc[0]).date()
+                birth_date_obj = pd.to_datetime(selected_warga_data['tanggal_lahir']).date()
+                latest_age_months = calculate_age_in_months(birth_date_obj, latest_exam_date)
+
+                # 2. Tentukan grafik yang akan ditampilkan berdasarkan usia
+                if latest_age_months <= 60:
+                    # --- JIKA USIA <= 5 TAHUN, TAMPILKAN GRAFIK KMS ---
+                    df_kms = df_pemeriksaan.copy()
+                    df_kms = df_kms.rename(columns={
+                        'berat_badan_kg': 'berat_kg',
+                        'tinggi_badan_cm': 'tinggi_cm',
+                    })
+                    
+                    df_kms['jenis_kelamin'] = selected_warga_data['jenis_kelamin']
+                    df_kms['usia_bulan'] = df_kms.apply(
+                        lambda row: calculate_age_in_months(birth_date_obj, row['tanggal_pemeriksaan']), axis=1
+                    )
+                    
+                    plot_all_kms_curves(df_kms)
+                else:
+                    # --- JIKA USIA > 5 TAHUN, TAMPILKAN GRAFIK TREN BIASA ---
+                    plot_individual_trends(df_pemeriksaan.copy())
+                # --- AKHIR MODIFIKASI ---
+
+                # plot_individual_trends(df_pemeriksaan)
 
 
                 st.divider()
