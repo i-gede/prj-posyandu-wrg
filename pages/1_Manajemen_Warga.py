@@ -150,26 +150,26 @@ def get_interpretation_wfa(berat_anak: float, z: Dict) -> Tuple[str, str]:
 def get_interpretation_wfh(berat_anak: float, z: Dict) -> Tuple[str, str]:
     if berat_anak > z['SD3']: return "Gizi lebih (Obesitas)", 'red'
     elif berat_anak > z['SD2']: return "Berisiko gizi lebih (Overweight)", 'yellow'
-    elif berat_anak >= z['SD2neg']: return "Gizi baik (Normal)", 'forestgreen'
+    elif berat_anak >= z['SD2neg']: return "Gizi baik (Normal)", 'darkgreen'#'forestgreen'
     elif berat_anak >= z['SD3neg']: return "Gizi kurang (Wasting)", 'yellow'
     else: return "Gizi buruk (Severe Wasting)", 'red'
 
 def get_interpretation_bmi(bmi_anak: float, z: Dict) -> Tuple[str, str]:
     if bmi_anak > z['SD3']: return "Gizi lebih (Obesitas)", 'red'
     elif bmi_anak > z['SD2']: return "Berisiko gizi lebih (Overweight)", 'yellow'
-    elif bmi_anak >= z['SD2neg']: return "Gizi baik (Normal)", 'forestgreen'
+    elif bmi_anak >= z['SD2neg']: return "Gizi baik (Normal)", 'darkgreen'#'forestgreen'
     elif bmi_anak >= z['SD3neg']: return "Gizi kurang (Wasting)", 'yellow'
     else: return "Gizi buruk (Severe Wasting)", 'red'
 
 def get_interpretation_lhfa(panjang_anak: float, z: Dict) -> Tuple[str, str]:
     if panjang_anak > z['SD2']: return "Tinggi", 'forestgreen'
-    elif panjang_anak >= z['SD2neg']: return "Normal", 'forestgreen'
+    elif panjang_anak >= z['SD2neg']: return "Normal", 'darkgreen'#'forestgreen'
     elif panjang_anak >= z['SD3neg']: return "Pendek (Stunting)", 'yellow'
     else: return "Sangat Pendek (Severe Stunting)", 'red'
 
 def get_interpretation_hcfa(hc_anak: float, z: Dict) -> Tuple[str, str]:
     if hc_anak > z['SD2']: return "Makrosefali", 'yellow'
-    elif hc_anak >= z['SD2neg']: return "Normal", 'forestgreen'
+    elif hc_anak >= z['SD2neg']: return "Normal", 'darkgreen'#'forestgreen'
     else: return "Mikrosefali", 'yellow'
 
 # --- FUNGSI PLOTTING UTAMA UNTUK KMS ---
@@ -228,7 +228,7 @@ def create_growth_chart(ax: plt.Axes, chart_type: str, history_df: pd.DataFrame,
 
     # Anotasi dan Label
     props = dict(boxstyle='round', facecolor=color, alpha=0.8)
-    ax.text(0.03, 0.97, f"Interpretasi: {interpretation}", transform=ax.transAxes, fontsize=12, color='white', va='top', bbox=props)
+    ax.text(0.03, 0.97, f"Interpretasi: {interpretation}", transform=ax.transAxes, fontsize=12, color='white', fontweight='bold', va='top', bbox=props)
 
     title_text = f"Grafik {cfg['title']} - {'Perempuan' if gender == 'P' else 'Laki-laki'}"
     if 'age_range_label' in range_cfg:
