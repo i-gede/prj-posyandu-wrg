@@ -240,8 +240,18 @@ def create_growth_chart(ax: plt.Axes, chart_type: str, history_df: pd.DataFrame,
     
     ax.set_xlim(range_cfg["xlim"])
     ax.set_ylim(range_cfg["ylim"])
+
+    ax2 = ax.twinx(); ax2.set_ylim(ax.get_ylim())
+    ax2.yaxis.set_major_locator(MultipleLocator(range_cfg["y_major"]))
+    ax2.yaxis.set_minor_locator(MultipleLocator(range_cfg["y_minor"]))
+
     ax.xaxis.set_major_locator(MultipleLocator(range_cfg["x_major"]))
     ax.yaxis.set_major_locator(MultipleLocator(range_cfg["y_major"]))
+
+    for spine_position in ['top', 'bottom', 'left', 'right']:
+        ax.spines[spine_position].set_visible(False)
+        ax2.spines[spine_position].set_visible(False)
+
     ax.grid(which='major', linestyle='-', linewidth='0.8', color='gray')
     ax.grid(which='minor', axis='y', linestyle=':', linewidth='0.5', color='lightgray')
     ax.tick_params(axis='x', colors='white')
