@@ -244,6 +244,8 @@ def create_growth_chart(ax: plt.Axes, chart_type: str, history_df: pd.DataFrame,
     ax.yaxis.set_major_locator(MultipleLocator(range_cfg["y_major"]))
     ax.grid(which='major', linestyle='-', linewidth='0.8', color='gray')
     ax.grid(which='minor', axis='y', linestyle=':', linewidth='0.5', color='lightgray')
+    ax.tick_params(axis='x', colors='white')
+    ax.tick_params(axis='y', colors='white')
     ax.legend(loc='lower right')
     fig.tight_layout()
 
