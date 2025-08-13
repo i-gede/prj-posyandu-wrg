@@ -256,6 +256,9 @@ def create_growth_chart(ax: plt.Axes, chart_type: str, history_df: pd.DataFrame,
     ax.grid(which='minor', axis='y', linestyle=':', linewidth='0.5', color='lightgray')
     ax.tick_params(axis='x', colors='white')
     ax.tick_params(axis='y', colors='white')
+
+    ax2.tick_params(which='both', axis='y', labelcolor='white', length=0)
+
     ax.legend(loc='lower right')
     fig.tight_layout()
 
