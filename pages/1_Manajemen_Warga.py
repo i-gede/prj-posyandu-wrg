@@ -143,7 +143,7 @@ def calculate_bmi(weight_kg: float, height_cm: float) -> float:
 def get_interpretation_wfa(berat_anak: float, z: Dict) -> Tuple[str, str]:
     if berat_anak > z['SD3']: return "Berat badan sangat lebih", 'red'
     elif berat_anak > z['SD2']: return "Berat badan lebih", 'yellow'
-    elif berat_anak >= z['SD2neg']: return "Berat badan normal", 'forestgreen'
+    elif berat_anak >= z['SD2neg']: return "Berat badan normal", 'darkgreen'#'forestgreen'
     elif berat_anak > z['SD3neg']: return "Berat badan kurang", 'yellow'
     else: return "Berat badan sangat kurang (Underweight)", 'red'
 
