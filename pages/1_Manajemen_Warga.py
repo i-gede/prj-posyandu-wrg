@@ -243,7 +243,7 @@ def create_growth_chart(ax: plt.Axes, chart_type: str, history_df: pd.DataFrame,
 
     ax2 = ax.twinx(); ax2.set_ylim(ax.get_ylim())
     ax2.yaxis.set_major_locator(MultipleLocator(range_cfg["y_major"]))
-    ax2.yaxis.set_minor_locator(MultipleLocator(range_cfg["y_minor"]))
+    #ax2.yaxis.set_minor_locator(MultipleLocator(range_cfg["y_minor"]))
 
     ax.xaxis.set_major_locator(MultipleLocator(range_cfg["x_major"]))
     ax.yaxis.set_major_locator(MultipleLocator(range_cfg["y_major"]))
