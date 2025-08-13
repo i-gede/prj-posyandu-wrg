@@ -226,6 +226,10 @@ def create_growth_chart(ax: plt.Axes, chart_type: str, history_df: pd.DataFrame,
     ax.plot(history_df[x_col].astype(float), history_df[y_col].astype(float), marker='o', linestyle='-', color='darkviolet', label='Riwayat Pertumbuhan')
     ax.scatter(x_latest, y_latest, marker='*', c='cyan', s=300, ec='black', zorder=10, label='Pengukuran Terakhir')
 
+    # Anotasi dan Label
+    props = dict(boxstyle='round', facecolor=color, alpha=0.8)
+    ax.text(0.03, 0.97, f"Interpretasi: {interpretation}", transform=ax.transAxes, fontsize=12, va='top', bbox=props)
+
     title_text = f"Grafik {cfg['title']} - {'Perempuan' if gender == 'P' else 'Laki-laki'}"
     if 'age_range_label' in range_cfg:
         title_text += f" ({range_cfg['age_range_label']})"
