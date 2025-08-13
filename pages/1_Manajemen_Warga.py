@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from supabase import create_client
 from datetime import date, datetime
+from page_dashboard import format_usia_string
 
 # --- KONEKSI & KEAMANAN ---
 st.set_page_config(page_title="Manajemen Warga", page_icon="👨‍👩‍👧‍👦", layout="wide")
@@ -143,12 +144,17 @@ def page_manajemen_warga():
             st.subheader(f"Riwayat Pemeriksaan untuk {selected_warga_data['nama_lengkap']}")
             
             pemeriksaan_response = supabase.table("pemeriksaan").select("*").eq("warga_id", selected_warga_data['id']).order("tanggal_pemeriksaan", desc=True).execute()
-            
+
             if not pemeriksaan_response.data:
                 st.info("Warga ini belum memiliki riwayat pemeriksaan.")
             else:
                 df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data)
-                st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'tensi_sistolik', 'tensi_diastolik', 'berat_badan_kg', 'gula_darah', 'kolesterol']])
+
+                df_pemeriksaan['usia_thn_bln'] = df_pemeriksaan['tanggal_lahir'].apply(
+                    lambda tgl: format_usia_string(tgl, df_pemeriksaan['tanggal_pemeriksaan'])
+                ) #13082025 tambahkolom usia dalam tahun bulan
+
+                st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'usia_thn_bln', 'berat_badan_kg', 'tinggi_badan_kg', 'lingkar_lengan_cm', 'lingkar_kepala_cm', 'tensi_sistolik', 'tensi_diastolik', 'gula_darah', 'kolesterol']])
 
                 plot_individual_trends(df_pemeriksaan)
 
