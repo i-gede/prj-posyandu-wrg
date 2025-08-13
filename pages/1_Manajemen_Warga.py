@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from supabase import create_client
 from datetime import date, datetime
-from data_utils import format_usia_teks
+# from data_utils import format_usia_teks
 
 # --- KONEKSI & KEAMANAN ---
 st.set_page_config(page_title="Manajemen Warga", page_icon="👨‍👩‍👧‍👦", layout="wide")
@@ -150,11 +150,11 @@ def page_manajemen_warga():
             else:
                 df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data)
 
-                df_pemeriksaan['usia_thn_bln'] = df_pemeriksaan['tanggal_lahir'].apply(
-                    lambda tgl: format_usia_teks(tgl, df_pemeriksaan['tanggal_pemeriksaan'])
-                ) #13082025 tambahkolom usia dalam tahun bulan
+                # df_pemeriksaan['usia_thn_bln'] = df_pemeriksaan['tanggal_lahir'].apply(
+                #     lambda tgl: format_usia_teks(tgl, df_pemeriksaan['tanggal_pemeriksaan'])
+                # ) #13082025 tambahkolom usia dalam tahun bulan
 
-                st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'usia_thn_bln', 'berat_badan_kg', 'tinggi_badan_kg', 'lingkar_lengan_cm', 'lingkar_kepala_cm', 'tensi_sistolik', 'tensi_diastolik', 'gula_darah', 'kolesterol']])
+                st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'berat_badan_kg', 'tinggi_badan_kg', 'lingkar_lengan_cm', 'lingkar_kepala_cm', 'tensi_sistolik', 'tensi_diastolik', 'gula_darah', 'kolesterol']])
 
                 plot_individual_trends(df_pemeriksaan)
 
