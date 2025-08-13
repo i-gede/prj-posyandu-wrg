@@ -26,6 +26,37 @@ if not supabase:
     st.error("Koneksi Supabase tidak ditemukan. Silakan login kembali.")
     st.stop()
 
+
+# --- FUNGSI-FUNGSI PEMBANTU ---
+
+def hitung_usia_saat_periksa(tanggal_lahir_warga, tanggal_pemeriksaan):
+    """
+    Menghitung usia pada tanggal pemeriksaan berdasarkan tanggal lahir warga.
+    Mengembalikan usia dalam format string "X thn, Y bln".
+    """
+    try:
+        # Konversi string tanggal lahir ke objek date
+        tgl_lahir = datetime.strptime(tanggal_lahir_warga, '%Y-%m-%d').date()
+
+        # Konversi string tanggal pemeriksaan ke objek date
+        # Mengatasi format ISO 8601 dengan informasi zona waktu
+        tgl_periksa = datetime.fromisoformat(tanggal_pemeriksaan.replace('Z', '+00:00')).date()
+
+        # Menghitung selisih hari total
+        selisih_hari = (tgl_periksa - tgl_lahir).days
+        
+        # Menghitung tahun dan sisa hari
+        tahun = selisih_hari // 365
+        sisa_hari = selisih_hari % 365
+        
+        # Menghitung bulan dari sisa hari (aproksimasi)
+        bulan = sisa_hari // 30
+        
+        return f"{tahun} thn, {bulan} bln"
+    except (ValueError, TypeError, AttributeError):
+        # Mengembalikan N/A jika ada masalah dengan format tanggal
+        return "N/A"
+
 # --- FUNGSI-FUNGSI PEMBANTU ---
 def plot_individual_trends(df_pemeriksaan):
     st.subheader("📈 Grafik Tren Kesehatan Individu")
@@ -150,11 +181,39 @@ def page_manajemen_warga():
             else:
                 df_pemeriksaan = pd.DataFrame(pemeriksaan_response.data)
 
-                # df_pemeriksaan['usia_thn_bln'] = df_pemeriksaan['tanggal_lahir'].apply(
-                #     lambda tgl: format_usia_teks(tgl, df_pemeriksaan['tanggal_pemeriksaan'])
-                # ) #13082025 tambahkolom usia dalam tahun bulan
+                # # df_pemeriksaan['usia_thn_bln'] = df_pemeriksaan['tanggal_lahir'].apply(
+                # #     lambda tgl: format_usia_teks(tgl, df_pemeriksaan['tanggal_pemeriksaan'])
+                # # ) #13082025 tambahkolom usia dalam tahun bulan
 
-                st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'berat_badan_kg', 'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm', 'tensi_sistolik', 'tensi_diastolik', 'gula_darah', 'kolesterol']])
+                # st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'berat_badan_kg', 'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm', 'tensi_sistolik', 'tensi_diastolik', 'gula_darah', 'kolesterol']])
+
+                # === PERUBAHAN DIMULAI DI SINI ===
+                # 1. Ambil tanggal lahir warga yang sedang dipilih.
+                tgl_lahir_warga = selected_warga_data['tanggal_lahir']
+
+                # 2. Buat kolom baru 'Usia' dengan menerapkan fungsi hitung_usia_saat_periksa.
+                #    Kita gunakan lambda untuk memberikan tanggal lahir (konstan) dan tanggal pemeriksaan (berubah per baris) ke fungsi.
+                df_pemeriksaan['Usia'] = df_pemeriksaan['tanggal_pemeriksaan'].apply(
+                    lambda tgl_periksa: hitung_usia_saat_periksa(tgl_lahir_warga, tgl_periksa)
+                )
+
+                # 3. Definisikan urutan kolom untuk ditampilkan, letakkan 'Usia' di depan.
+                kolom_tampil = [
+                    'tanggal_pemeriksaan', 
+                    'Usia',  # Kolom baru ditambahkan di sini
+                    'berat_badan_kg', 
+                    'tinggi_badan_cm', 
+                    'lingkar_lengan_cm', 
+                    'lingkar_kepala_cm', 
+                    'tensi_sistolik', 
+                    'tensi_diastolik', 
+                    'gula_darah', 
+                    'kolesterol'
+                ]
+                
+                # 4. Tampilkan DataFrame dengan kolom baru dan urutan yang sudah diatur.
+                st.dataframe(df_pemeriksaan[kolom_tampil], use_container_width=True)
+                # === AKHIR PERUBAHAN ===
 
                 plot_individual_trends(df_pemeriksaan)
 
