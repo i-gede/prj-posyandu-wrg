@@ -363,6 +363,10 @@ def page_dashboard():
             # 1. TETAP hitung 'usia' numerik untuk logika filter & kategori
             df_warga['usia'] = (pd.to_datetime(selected_date) - df_warga['tanggal_lahir']).dt.days / 365.25
 
+            # Filter keluar semua warga dengan usia negatif (belum lahir pada tanggal terpilih)
+            # Ini memastikan semua perhitungan selanjutnya hanya menggunakan data yang valid.
+            df_warga = df_warga[df_warga['usia'] >= 0].copy()
+
             # 2. [BARU] Buat kolom 'usia_teks' dengan format "Tahun Bulan" yang akurat
             df_warga['usia_teks'] = df_warga['tanggal_lahir'].apply(
                 lambda tgl: format_usia_string(tgl, selected_date)
