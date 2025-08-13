@@ -154,7 +154,7 @@ def page_manajemen_warga():
                 #     lambda tgl: format_usia_teks(tgl, df_pemeriksaan['tanggal_pemeriksaan'])
                 # ) #13082025 tambahkolom usia dalam tahun bulan
 
-                st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'berat_badan_kg', 'lingkar_lengan_cm', 'lingkar_kepala_cm', 'tensi_sistolik', 'tensi_diastolik', 'gula_darah', 'kolesterol']])
+                st.dataframe(df_pemeriksaan[['tanggal_pemeriksaan', 'berat_badan_kg', 'tinggi_badan_cm', 'lingkar_lengan_cm', 'lingkar_kepala_cm', 'tensi_sistolik', 'tensi_diastolik', 'gula_darah', 'kolesterol']])
 
                 plot_individual_trends(df_pemeriksaan)
 
@@ -172,13 +172,16 @@ def page_manajemen_warga():
                         
                         col1, col2 = st.columns(2)
                         with col1:
-                            edit_tensi_sistolik = st.number_input("Tensi Sistolik (mmHg)", value=int(selected_pemeriksaan['tensi_sistolik']))
                             edit_berat_badan = st.number_input("Berat Badan (kg)", value=float(selected_pemeriksaan['berat_badan_kg']))
-                            edit_lingkar_perut = st.number_input("Lingkar Perut (cm)", value=float(selected_pemeriksaan['lingkar_perut_cm']))
-                            edit_gula_darah = st.number_input("Gula Darah (mg/dL)", value=int(selected_pemeriksaan['gula_darah']))
-                        with col2:
-                            edit_tensi_diastolik = st.number_input("Tensi Diastolik (mmHg)", value=int(selected_pemeriksaan['tensi_diastolik']))
+                            edit_tinggi_badan = st.number_input("Tinggi Badan (cm)", value=float(selected_pemeriksaan['tinggi_badan_cm']))
                             edit_lingkar_lengan = st.number_input("Lingkar Lengan (cm)", value=float(selected_pemeriksaan['lingkar_lengan_cm']))
+                            edit_lingkar_perut = st.number_input("Lingkar Perut (cm)", value=float(selected_pemeriksaan['lingkar_perut_cm']))
+                            edit_lingkar_kepala = st.number_input("Lingkar Kepala (cm)", value=float(selected_pemeriksaan['lingkar_kepala_cm']))
+                            
+                        with col2:
+                            edit_tensi_sistolik = st.number_input("Tensi Sistolik (mmHg)", value=int(selected_pemeriksaan['tensi_sistolik']))
+                            edit_tensi_diastolik = st.number_input("Tensi Diastolik (mmHg)", value=int(selected_pemeriksaan['tensi_diastolik']))
+                            edit_gula_darah = st.number_input("Gula Darah (mg/dL)", value=int(selected_pemeriksaan['gula_darah']))
                             edit_kolesterol = st.number_input("Kolesterol (mg/dL)", value=int(selected_pemeriksaan['kolesterol']))
                         
                         edit_catatan = st.text_area("Catatan", value=selected_pemeriksaan['catatan'])
@@ -187,8 +190,8 @@ def page_manajemen_warga():
                             try:
                                 update_data = {
                                     "tensi_sistolik": edit_tensi_sistolik, "tensi_diastolik": edit_tensi_diastolik,
-                                    "berat_badan_kg": edit_berat_badan, "lingkar_perut_cm": edit_lingkar_perut,
-                                    "lingkar_lengan_cm": edit_lingkar_lengan, "gula_darah": edit_gula_darah,
+                                    "tinggi_badan_cm": edit_tinggi_badan, "berat_badan_kg": edit_berat_badan, "lingkar_perut_cm": edit_lingkar_perut,
+                                    "lingkar_lengan_cm": edit_lingkar_lengan, "lingkar_kepala_cm": edit_lingkar_kepala, "gula_darah": edit_gula_darah,
                                     "kolesterol": edit_kolesterol, "catatan": edit_catatan
                                 }
                                 supabase.table("pemeriksaan").update(update_data).eq("id", selected_pemeriksaan['id']).execute()
